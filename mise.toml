@@ -1,0 +1,38 @@
+# mise.toml
+
+[tools]
+node = "26"
+python = "3.12"
+
+[env]
+_.file = ".env.demo"
+_.python.venv = { path = ".venv", create = true }
+
+
+# ==================== INSTALL TASKS ====================
+
+[tasks."install:backend"]
+description = "Install Python dependencies for FastAPI"
+run = "cd backend && pip install -r requirements.txt"
+
+[tasks."install:frontend"]
+description = "Install Node dependencies for React Router v7"
+run = "cd frontend && npm install"
+
+[tasks."install"]
+description = "Install all dependencies in parallel"
+depends = ["install:backend", "install:frontend"] 
+
+# ==================== DEV TASKS ====================
+
+[tasks."dev:backend"]
+description = "Start the FastAPI development server"
+run = "cd backend && fastapi dev main.py --port 8000"
+
+[tasks."dev:frontend"]
+description = "Start the React Router v7 (Vite) development server"
+run = "cd frontend && npm run dev"
+
+[tasks."frontend:lint"]
+description = "Run ESLint on the front-end"
+run = "cd frontend && npm run lint"
