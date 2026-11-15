@@ -10,6 +10,15 @@ type Task = {
   state: "done" | "now" | "next";
 };
 
+type JournalEntry = {
+  id: string;
+  createdAt: string;
+  kind: "text" | "voice";
+  text?: string;
+  audioDataUrl?: string;
+  durationSeconds?: number;
+};
+
 const initialTasks: Task[] = [
   { id: "hydration", time: "07:30", title: "Hydration & vitals", detail: "Morning check · 4 min", state: "done" },
   { id: "checkin", time: "09:00", title: "Circadian & mood check-in", detail: "Sleep quality and mood · 2 min", state: "now" },
@@ -31,6 +40,14 @@ const sleepHistory = [
 export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
   const [section, setSection] = useState<"routine" | "checks" | "journal" | "history">("routine");
   const [completedTasks, setCompletedTasks] = useState<string[]>(["hydration"]);
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  useEffect(() => {
+    const storedEntries = readJournalEntries();
+    setJournalEntries(storedEntries);
+    if (storedEntries.length > 0) {
+      setCompletedTasks((current) => current.includes("daily-journal") ? current : [...current, "daily-journal"]);
+    }
+  }, []);
 
   function toggleTask(id: string) {
     setCompletedTasks((current) =>
@@ -116,9 +133,15 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
             hidden={section !== "journal"}
           >
             <DailyJournalPanel
-              onJournalSaved={() => setCompletedTasks((current) =>
-                current.includes("daily-journal") ? current : [...current, "daily-journal"],
-              )}
+              onJournalEntriesChanged={(entries) => {
+                setJournalEntries(entries);
+                setCompletedTasks((current) => {
+                  if (entries.length > 0) {
+                    return current.includes("daily-journal") ? current : [...current, "daily-journal"];
+                  }
+                  return current.filter((taskId) => taskId !== "daily-journal");
+                });
+              }}
             />
           </div>
 
@@ -205,6 +228,7 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
                 <div className="history-row"><span>Sleep duration</span><strong>7 h 36 m</strong><span className="trend-neutral">+ 18 min</span></div>
                 {anomalyActive && <p className="footnote">* Simulated reading during the active environmental event.</p>}
               </div>
+              <JournalHistory entries={journalEntries} />
             </div>
           </div>
         </section>
@@ -350,18 +374,200 @@ function DailyChecksPanel({
   );
 }
 
-function DailyJournalPanel({ onJournalSaved }: { onJournalSaved: () => void }) {
-  const [entry, setEntry] = useState("");
-  const [savedEntry, setSavedEntry] = useState("");
-  const [savedTime, setSavedTime] = useState("");
+const JOURNAL_STORAGE_KEY = "baymax.astronaut-journal.v1";
+const MAX_JOURNAL_STORAGE_LENGTH = 2_400_000;
+const MAX_RECORDING_SECONDS = 90;
 
-  function saveEntry(event: FormEvent<HTMLFormElement>) {
+function isJournalEntry(value: unknown): value is JournalEntry {
+  if (!value || typeof value !== "object") return false;
+  const entry = value as Partial<JournalEntry>;
+  if (typeof entry.id !== "string" || typeof entry.createdAt !== "string") return false;
+  if (entry.kind === "text") return typeof entry.text === "string";
+  return entry.kind === "voice" && typeof entry.audioDataUrl === "string";
+}
+
+function readJournalEntries(): JournalEntry[] {
+  try {
+    const stored = window.localStorage.getItem(JOURNAL_STORAGE_KEY);
+    const parsed: unknown = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed.filter(isJournalEntry) : [];
+  } catch {
+    return [];
+  }
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === "string"
+      ? resolve(reader.result)
+      : reject(new Error("Could not read the voice recording."));
+    reader.onerror = () => reject(reader.error ?? new Error("Could not read the voice recording."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function DailyJournalPanel({ onJournalEntriesChanged }: { onJournalEntriesChanged: (entries: JournalEntry[]) => void }) {
+  const [draft, setDraft] = useState("");
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [storageReady, setStorageReady] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [error, setError] = useState("");
+  const entriesRef = useRef<JournalEntry[]>([]);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const recordingStartedAtRef = useRef(0);
+  const recordingTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const storedEntries = readJournalEntries();
+    entriesRef.current = storedEntries;
+    setEntries(storedEntries);
+    setStorageReady(true);
+
+    return () => {
+      if (recordingTimerRef.current !== null) window.clearInterval(recordingTimerRef.current);
+      const recorder = recorderRef.current;
+      if (recorder && recorder.state !== "inactive") {
+        recorder.onstop = null;
+        recorder.stop();
+      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
+
+  function storeEntry(newEntry: JournalEntry): boolean {
+    const nextEntries = [newEntry, ...entriesRef.current];
+    const serialized = JSON.stringify(nextEntries);
+    if (serialized.length > MAX_JOURNAL_STORAGE_LENGTH) {
+      setError("Local journal storage is nearly full. Delete an older entry before saving this one.");
+      return false;
+    }
+
+    try {
+      window.localStorage.setItem(JOURNAL_STORAGE_KEY, serialized);
+    } catch {
+      setError("Could not save to this browser's local storage. Remove older recordings or check available storage.");
+      return false;
+    }
+
+    entriesRef.current = nextEntries;
+    setEntries(nextEntries);
+    setError("");
+    onJournalEntriesChanged(nextEntries);
+    return true;
+  }
+
+  function deleteEntry(id: string) {
+    const nextEntries = entriesRef.current.filter((item) => item.id !== id);
+    try {
+      window.localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(nextEntries));
+      entriesRef.current = nextEntries;
+      setEntries(nextEntries);
+      setError("");
+      onJournalEntriesChanged(nextEntries);
+    } catch {
+      setError("Could not update this browser's local journal storage.");
+    }
+  }
+
+  function saveTextEntry(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const trimmedEntry = entry.trim();
-    if (!trimmedEntry) return;
-    setSavedEntry(trimmedEntry);
-    setSavedTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-    onJournalSaved();
+    const text = draft.trim();
+    if (!text) return;
+    const saved = storeEntry({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      createdAt: new Date().toISOString(),
+      kind: "text",
+      text,
+    });
+    if (saved) setDraft("");
+  }
+
+  function stopRecording() {
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state === "recording") recorder.stop();
+  }
+
+  async function startRecording() {
+    setError("");
+    if (!storageReady) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("Voice recording is not supported by this browser. You can write an entry instead.");
+      return;
+    }
+
+    let stream: MediaStream | null = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const audioPlayer = document.createElement("audio");
+      const mimeType = ["audio/mp4", "audio/webm", "audio/webm;codecs=opus"]
+        .find((type) => MediaRecorder.isTypeSupported(type) && audioPlayer.canPlayType(type) !== "");
+      if (!mimeType) {
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        setError("This browser cannot record an audio format it can replay. You can write an entry instead.");
+        return;
+      }
+
+      const options: MediaRecorderOptions = { audioBitsPerSecond: 24000, mimeType };
+
+      const recorder = new MediaRecorder(stream, options);
+      recorderRef.current = recorder;
+      chunksRef.current = [];
+      recordingStartedAtRef.current = Date.now();
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
+      };
+      recorder.onerror = () => setError("Recording stopped unexpectedly. Try again or write an entry.");
+      recorder.onstop = () => {
+        const durationSeconds = Math.min(
+          MAX_RECORDING_SECONDS,
+          Math.max(1, Math.round((Date.now() - recordingStartedAtRef.current) / 1000)),
+        );
+        const recordingType = recorder.mimeType || chunksRef.current[0]?.type || "audio/webm";
+        const recording = new Blob(chunksRef.current, { type: recordingType });
+        streamRef.current?.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        if (recordingTimerRef.current !== null) window.clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+        setIsRecording(false);
+        setRecordingSeconds(0);
+
+        if (recording.size === 0) {
+          setError("No audio was captured. Check microphone permission and try again.");
+          return;
+        }
+
+        void blobToDataUrl(recording)
+          .then((audioDataUrl) => storeEntry({
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            createdAt: new Date().toISOString(),
+            kind: "voice",
+            audioDataUrl,
+            durationSeconds,
+          }))
+          .catch(() => setError("Could not prepare the recording for local storage."));
+      };
+
+      recorder.start(1000);
+      setIsRecording(true);
+      recordingTimerRef.current = window.setInterval(() => {
+        const elapsed = Math.floor((Date.now() - recordingStartedAtRef.current) / 1000);
+        setRecordingSeconds(Math.min(elapsed, MAX_RECORDING_SECONDS));
+        if (elapsed >= MAX_RECORDING_SECONDS) stopRecording();
+      }, 500);
+    } catch (recordingError) {
+      stream?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      const denied = recordingError instanceof DOMException && recordingError.name === "NotAllowedError";
+      setError(denied
+        ? "Microphone permission was denied. Allow microphone access or write an entry instead."
+        : "Could not start recording. Check microphone availability and try again.");
+    }
   }
 
   return (
@@ -373,34 +579,107 @@ function DailyJournalPanel({ onJournalSaved }: { onJournalSaved: () => void }) {
         </div>
         <span className="duration-tag">MISSION DAY 018</span>
       </div>
-      <p className="journal-prompt">Write about what stood out today. You can include mood, sleep, workload, relationships, symptoms, medication, light exposure, or mission events.</p>
-      <form className="journal-form" onSubmit={saveEntry}>
+
+      <p className="journal-prompt">Reflect on what stood out today: mood, sleep, workload, relationships, symptoms, medication, light exposure, or mission events.</p>
+
+      <form className="journal-form" onSubmit={saveTextEntry}>
         <label className="sr-only" htmlFor="daily-journal-entry">Daily journal entry</label>
         <textarea
           id="daily-journal-entry"
-          value={entry}
+          value={draft}
           maxLength={3000}
           rows={9}
           placeholder="Start your entry..."
-          onChange={(event) => setEntry(event.target.value)}
+          onChange={(event) => setDraft(event.target.value)}
         />
         <div className="journal-actions">
-          <span className="journal-count">{entry.length} / 3000</span>
-          <button className="button button-primary" type="submit" disabled={!entry.trim()}>
-            Save journal entry
-          </button>
-        </div>
-      </form>
-      {savedEntry && (
-        <article className="saved-journal-entry" aria-live="polite">
-          <div className="saved-journal-heading">
-            <span className="eyebrow">TODAY'S ENTRY</span>
-            <time>Saved locally · {savedTime}</time>
+          <div className="journal-left-actions">
+            <button
+              className={isRecording ? "journal-record-button recording" : "journal-record-button"}
+              type="button"
+              aria-pressed={isRecording}
+              disabled={!storageReady && !isRecording}
+              onClick={isRecording ? stopRecording : startRecording}
+            >
+              <span className="microphone-icon" aria-hidden="true"><i /></span>
+              {isRecording ? "Stop and save voice log" : "Record voice log"}
+            </button>
+            <span className="journal-count">{draft.length} / 3000</span>
           </div>
-          <p>{savedEntry}</p>
-        </article>
+          <button className="journal-save-button" type="submit" disabled={!draft.trim() || !storageReady}>Save entry</button>
+        </div>
+        {isRecording && <span className="recording-time" role="timer">Recording · {Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")} · up to {MAX_RECORDING_SECONDS}s</span>}
+      </form>
+
+      {error && <p className="journal-error" role="alert">{error}</p>}
+
+      <section className="journal-history" aria-labelledby="journal-history-title">
+        <div className="journal-history-heading">
+          <div><span className="eyebrow">LOCAL ARCHIVE</span><h4 id="journal-history-title">Journal history</h4></div>
+          <span className="journal-count">{entries.length} ENTRIES</span>
+        </div>
+        {entries.length === 0 ? (
+          <p className="journal-history-empty">No saved entries yet.</p>
+        ) : (
+          <div className="journal-entry-list">
+            {entries.map((item) => (
+              <article className="saved-journal-entry" key={item.id}>
+                <div className="saved-journal-heading">
+                  <span className="eyebrow">{item.kind === "voice" ? "VOICE LOG" : "WRITTEN ENTRY"}</span>
+                  <time>{new Date(item.createdAt).toLocaleString()}</time>
+                </div>
+                {item.kind === "voice" && item.audioDataUrl ? (
+                  <div className="saved-voice-entry">
+                    <span>{item.durationSeconds ?? 0}s recording</span>
+                    <audio controls preload="metadata" src={item.audioDataUrl}>Audio playback is not supported by this browser.</audio>
+                  </div>
+                ) : (
+                  <p>{item.text}</p>
+                )}
+                <button className="journal-delete" type="button" onClick={() => deleteEntry(item.id)}>Delete from this device</button>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <p className="journal-disclaimer">Journal text and audio are stored in this browser's local storage and are not sent to mission control. Clearing browser data removes them.</p>
+    </section>
+  );
+}
+
+function JournalHistory({ entries }: { entries: JournalEntry[] }) {
+  return (
+    <section className="journal-history history-journal-archive" aria-labelledby="history-journal-title">
+      <div className="journal-history-heading">
+        <div>
+          <span className="eyebrow">PERSONAL JOURNAL</span>
+          <h4 id="history-journal-title">Written & voice entries</h4>
+        </div>
+        <span className="journal-count">{entries.length} ENTRIES</span>
+      </div>
+      {entries.length === 0 ? (
+        <p className="journal-history-empty">No saved journal entries yet.</p>
+      ) : (
+        <div className="journal-entry-list">
+          {entries.map((item) => (
+            <article className="saved-journal-entry" key={item.id}>
+              <div className="saved-journal-heading">
+                <span className="eyebrow">{item.kind === "voice" ? "VOICE LOG" : "WRITTEN ENTRY"}</span>
+                <time>{new Date(item.createdAt).toLocaleString()}</time>
+              </div>
+              {item.kind === "voice" && item.audioDataUrl ? (
+                <div className="saved-voice-entry">
+                  <span>{item.durationSeconds ?? 0}s recording</span>
+                  <audio controls preload="metadata" src={item.audioDataUrl}>Audio playback is not supported by this browser.</audio>
+                </div>
+              ) : (
+                <p>{item.text}</p>
+              )}
+            </article>
+          ))}
+        </div>
       )}
-      <p className="journal-disclaimer">Entries are stored only in this demo session and are not sent to mission control.</p>
     </section>
   );
 }
