@@ -37,7 +37,13 @@ const sleepHistory = [
   { day: "S", hours: 7.6, score: 80 },
 ];
 
-export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
+export function AstronautPage({ anomalyActive, location, now, missionDay, heartRate, spo2 }: DemoPageProps) {
+  // Live values from the simulator. They fall back to the old demo numbers when used standalone.
+  const liveHeartRate = heartRate ?? (anomalyActive ? 112 : 68);
+  const liveSpo2 = spo2 ?? 98;
+  const clock = now ?? new Date(Date.UTC(2027, 2, 18, 8, 42));
+  const clockText = `${String(clock.getUTCHours()).padStart(2, "0")}:${String(clock.getUTCMinutes()).padStart(2, "0")}`;
+  const dayPart = clock.getUTCHours() < 12 ? "morning" : clock.getUTCHours() < 18 ? "afternoon" : "evening";
   const [section, setSection] = useState<"routine" | "checks" | "journal" | "history">("routine");
   const [completedTasks, setCompletedTasks] = useState<string[]>(["hydration"]);
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
@@ -60,13 +66,13 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
       <section className="page-heading">
         <div>
           <span className="eyebrow">CREW MEMBER / ASTRONAUT</span>
-          <h1>Good morning, Maya<span>.</span></h1>
+          <h1>Good {dayPart}, Maya<span>.</span></h1>
           <p>Health routine and personal trend history for Artemis III.</p>
         </div>
         <div className="heading-readout">
           <span className="eyebrow">MISSION DAY</span>
-          <strong>018</strong>
-          <span>LOCAL TIME · 08:42</span>
+          <strong>{String(missionDay ?? 18).padStart(3, "0")}</strong>
+          <span>LOCAL TIME · {clockText}</span>
         </div>
       </section>
 
@@ -223,7 +229,7 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
               </div>
               <div className="history-table">
                 <div className="history-row history-header"><span>MEASUREMENT</span><span>TODAY</span><span>7-DAY TREND</span></div>
-                <div className="history-row"><span>Resting heart rate</span><strong>{anomalyActive ? "112 bpm*" : "68 bpm"}</strong><span className="trend-neutral">Baseline</span></div>
+                <div className="history-row"><span>Resting heart rate</span><strong>{liveHeartRate} bpm{anomalyActive ? "*" : ""}</strong><span className="trend-neutral">Baseline</span></div>
                 <div className="history-row"><span>Blood pressure</span><strong>118 / 76</strong><span className="trend-positive">Within range</span></div>
                 <div className="history-row"><span>Sleep duration</span><strong>7 h 36 m</strong><span className="trend-neutral">+ 18 min</span></div>
                 {anomalyActive && <p className="footnote">* Simulated reading during the active environmental event.</p>}
@@ -251,8 +257,8 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
               <p className="status-message">No active alerts. Your latest routine sync completed at 08:31.</p>
             )}
             <div className="vitals-grid">
-              <div><span>HEART RATE</span><strong>{anomalyActive ? "112" : "68"}<small> bpm</small></strong></div>
-              <div><span>O₂ SATURATION</span><strong>98<small>%</small></strong></div>
+              <div><span>HEART RATE</span><strong>{liveHeartRate}<small> bpm</small></strong></div>
+              <div><span>O₂ SATURATION</span><strong>{liveSpo2}<small>%</small></strong></div>
             </div>
           </section>
 

@@ -1,6 +1,6 @@
 # medical-flow
 
-Guided yes / no / not sure medical decision flows.
+Guided yes / no / not sure medical decision flows. Copy this folder to `app/medical-flow/`.
 
 ## Use it
 
@@ -46,3 +46,19 @@ medical-flow/
 Node types: `question` (yes / no / unsure, all three required), `action` (step to confirm, optional timer),
 `disposition` (final outcome with a severity level). A loop back to an earlier node must be listed in
 `loopEdges`, otherwise the validator reports an accidental cycle.
+
+## Decisions I made that you should review
+
+- **"Not sure" routes** were not in your scenarios. For red-flag questions (chest pain, anaphylaxis signs,
+  swelling) "not sure" follows the YES path; for the rest it follows the more cautious path (the one that calls the CMO).
+- **Scenario 1 loop:** after the 15-minute rest I added a re-check question. If the heart rate is still high it
+  returns to the start (as in your flowchart); if not, it ends in a new "monitor" outcome (`d_resolved`).
+- **Severity levels** are my classification: emergency = anaphylaxis; urgent = chest-pain workup and swelling;
+  CMO evaluation = unexplained cases; monitor / self-care = treatable at the crew member's level.
+- Medication wording is translated as given. Doses and drugs have not been clinically reviewed; graphs are marked `draft`.
+- Requires TypeScript and a bundler that handles CSS imports (Vite / CRA / Next). No other dependencies.
+
+## Added for the simulator
+
+- `<FlowRunner initialGraphId="palpitations-tachycardia" />` opens a guide directly (read once, on mount).
+- `FlightSurgeonReport` is now exported as a type from the index.

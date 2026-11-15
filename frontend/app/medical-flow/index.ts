@@ -10,6 +10,7 @@ export { useFlow } from "./hooks/useFlow";
 export { allGraphs, assertValidGraphs } from "./data";
 export { validateGraph, validateAll } from "./engine/validate";
 export { searchGraphs } from "./engine/search";
-export { buildReport, reportToText } from "./report/buildReport";
+export { buildReport, reportToText, shouldNotify } from "./report/buildReport";
+export type { FlightSurgeonReport } from "./report/buildReport";
 export { enqueueReport, flushOutbox, listOutbox } from "./report/outbox";
 export * from "./types";

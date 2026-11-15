@@ -3,8 +3,11 @@ import { answerQuestion, completeAction, EMPTY_STATE, getNode, goBack, startFlow
 import type { Answer, FlowGraph, FlowState } from "../types";
 
 /** Holds the state of one running flow. All transitions are delegated to the pure engine. */
-export function useFlow(graphs: FlowGraph[]) {
-  const [state, setState] = useState<FlowState>(EMPTY_STATE);
+export function useFlow(graphs: FlowGraph[], initialGraphId?: string) {
+  const [state, setState] = useState<FlowState>(() => {
+    const initial = initialGraphId ? graphs.find((g) => g.id === initialGraphId) : undefined;
+    return initial ? startFlow(initial) : EMPTY_STATE;
+  });
 
   const graph = useMemo(
     () => graphs.find((g) => g.id === state.graphId) ?? null,

@@ -12,13 +12,15 @@ import "../styles/medical-flow.css";
 interface Props {
   /** Defaults to every graph registered in data/index.ts. */
   graphs?: FlowGraph[];
+  /** Opens this guide straight away (skips the symptom picker). Read once, on mount. */
+  initialGraphId?: string;
   /** Fires when the crew member saves a report; use it to trigger your sync. */
   onReportQueued?: (report: FlightSurgeonReport) => void;
 }
 
 /** Drop-in screen: condition picker, then the guided questions, then the outcome. */
-export function FlowRunner({ graphs = allGraphs, onReportQueued }: Props) {
-  const flow = useFlow(graphs);
+export function FlowRunner({ graphs = allGraphs, initialGraphId, onReportQueued }: Props) {
+  const flow = useFlow(graphs, initialGraphId);
 
   if (!flow.graph || !flow.node) {
     return (
