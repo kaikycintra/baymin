@@ -47,6 +47,7 @@ export function createInitialState(): SimState {
     },
     events: [],
     nextId: 1,
+    resetCount: 0,
   };
 }
 
@@ -244,7 +245,7 @@ export function simReducer(s: SimState, action: SimAction): SimState {
       return next;
     }
     case "reset":
-      return createInitialState();
+      return { ...createInitialState(), resetCount: s.resetCount + 1 };
   }
 }
 

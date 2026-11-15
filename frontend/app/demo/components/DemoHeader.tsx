@@ -11,7 +11,7 @@ interface Props {
 }
 
 export function DemoHeader({ actor, onActorChange }: Props) {
-  const { state, dispatch } = useSim();
+    const { state, dispatch, reset } = useSim();
 
   return (
     <>
@@ -62,7 +62,7 @@ export function DemoHeader({ actor, onActorChange }: Props) {
               <option value="rover">Rover</option>
             </select>
           </label>
-          <button type="button" className="text-action demo-reset" onClick={() => dispatch({ type: "reset" })}>Reset simulation</button>
+          <button type="button" className="text-action demo-reset" onClick={reset}>Reset simulation</button>
         </div>
       </header>
 

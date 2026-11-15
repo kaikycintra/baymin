@@ -16,6 +16,7 @@ const SRC_DOC =
   '<!doctype html><html lang="en"><head><meta charset="utf-8">' +
   '<meta name="viewport" content="width=device-width, initial-scale=1"></head><body></body></html>';
 const CLONE_ATTR = "data-viewport-clone";
+const HIDE_SCROLLBAR_ID = "viewport-frame-hide-scrollbar";
 
 function cloneStyles(target: Document): Promise<void> {
   target.head.querySelectorAll(`[${CLONE_ATTR}]`).forEach((node) => node.remove());
@@ -39,10 +40,12 @@ function cloneStyles(target: Document): Promise<void> {
 interface Props {
   title: string;
   className?: string;
+  /** Hide the frame's scrollbar. The content still scrolls with wheel, trackpad and touch. */
+  hideScrollbar?: boolean;
   children: ReactNode;
 }
 
-export function ViewportFrame({ title, className, children }: Props) {
+export function ViewportFrame({ title, className, hideScrollbar = true, children }: Props) {
   const cleanupRef = useRef<(() => void) | null>(null);
   const [mounted, setMounted] = useState(false);
   const [body, setBody] = useState<HTMLElement | null>(null);
@@ -76,6 +79,13 @@ export function ViewportFrame({ title, className, children }: Props) {
       currentDoc = doc;
       observer?.disconnect();
       if (!doc.documentElement.lang) doc.documentElement.lang = "en";
+      if (hideScrollbar && !doc.getElementById(HIDE_SCROLLBAR_ID)) {
+        const style = doc.createElement("style");
+        style.id = HIDE_SCROLLBAR_ID;
+        style.textContent =
+          "html{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar{display:none}";
+        doc.head.appendChild(style);
+      }
 
       syncStyles(doc);
       setBody(doc.body);
@@ -98,7 +108,7 @@ export function ViewportFrame({ title, className, children }: Props) {
 
     // The frame may already have loaded (load fired before this ref was attached).
     if (iframe.contentDocument?.readyState === "complete") handleLoad();
-  }, []);
+  }, [hideScrollbar]);
 
   return (
     <div className={className}>

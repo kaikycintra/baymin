@@ -81,6 +81,8 @@ export interface SimState {
 
   events: SimEvent[];
   nextId: number;
+  /** Increments on every reset. Screens use it as a React key so they remount with fresh state. */
+  resetCount: number;
 }
 
 export type SimAction =

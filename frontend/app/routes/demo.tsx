@@ -5,7 +5,7 @@ import { BaseConsole } from "../demo/components/BaseConsole";
 import { DemoHeader } from "../demo/components/DemoHeader";
 import { SensorPanel } from "../demo/components/SensorPanel";
 import { ACTORS } from "../demo/sim/constants";
-import { SimulationProvider } from "../demo/sim/context";
+import { SimulationProvider, useSim } from "../demo/sim/context";
 import type { Actor } from "../demo/sim/types";
 import "../demo/demo.css";
 
@@ -29,6 +29,7 @@ export default function DemoRoute() {
 }
 
 function DemoShell() {
+  const { state } = useSim();
   const [params, setParams] = useSearchParams();
   const actor = parseActor(params.get("actor"));
   const caption = ACTORS.find((a) => a.id === actor)?.caption;
@@ -49,7 +50,7 @@ function DemoShell() {
       <DemoHeader actor={actor} onActorChange={changeActor} />
       <div className="demo-grid">
         <section className="demo-stage" aria-label="Simulated screen">
-          {actor === "base" ? <BaseConsole /> : <ActorScreen key={actor} actor={actor} />}
+          {actor === "base" ? <BaseConsole /> : <ActorScreen key={`${actor}-${state.resetCount}`} actor={actor} />}
           <p className="demo-stage-caption">{caption}</p>
         </section>
         <SensorPanel />

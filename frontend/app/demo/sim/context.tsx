@@ -1,11 +1,14 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
 import type { Dispatch, ReactNode } from "react";
+import { clearDemoStorage } from "./storage";
 import { createInitialState, simReducer } from "./state";
 import type { SimAction, SimState } from "./types";
 
 interface SimContextValue {
   state: SimState;
   dispatch: Dispatch<SimAction>;
+  /** Resets the simulation AND clears saved journal entries, voice recordings and saved reports. */
+  reset: () => void;
 }
 
 const SimContext = createContext<SimContextValue | null>(null);
@@ -20,7 +23,12 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, [state.running, state.speed]);
 
-  const value = useMemo(() => ({ state, dispatch }), [state]);
+  const reset = useCallback(() => {
+    clearDemoStorage(); // first, so screens remounting after the reset read empty storage
+    dispatch({ type: "reset" });
+  }, []);
+
+  const value = useMemo(() => ({ state, dispatch, reset }), [state, reset]);
   return <SimContext.Provider value={value}>{children}</SimContext.Provider>;
 }
 
