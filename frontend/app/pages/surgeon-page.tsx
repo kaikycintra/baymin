@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { RemedyInventory } from "../components/remedy-inventory";
 import type { DemoPageProps } from "../demo-types";
 
 const missionData = {
@@ -124,6 +125,7 @@ export function SurgeonPage({ anomalyActive, location }: DemoPageProps) {
           </section>
         </div>
       </div>
+      <RemedyInventory key={mission} canEdit={false} missionConnected={mission === "Artemis III"} />
     </>
   );
 }

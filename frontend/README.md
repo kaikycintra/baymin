@@ -1,14 +1,14 @@
 # Baymax Frontend
 
-The frontend is a React Router application with separate pages for astronauts, mission CMOs, and flight surgeons. The pages currently use mock data and local demo state; they do not call the FastAPI backend yet.
+The frontend is a React Router application with separate pages for astronauts, mission CMOs, and flight surgeons. Most pages still use mock data and local demo state. The CMO remedy catalog and inventory use the onboard FastAPI backend.
 
 ## Run Locally
 
-From the repository root, install dependencies and start the frontend:
+From the repository root, install dependencies and start the frontend and onboard API:
 
 ```bash
 make setup
-make dev-frontend
+make dev
 ```
 
 Or, from this directory:
@@ -28,14 +28,27 @@ These are frontend page routes, not backend API endpoints:
 | --- | --- | --- |
 | GET | `/` | Redirects to `/astronaut`. |
 | GET | `/astronaut` | Astronaut routine, sleep and mood check-in, reaction check, health history, and local environment warning. |
-| GET | `/cmo` | Mission crew roster, sleep/cognitive trend flags, and alerts. |
-| GET | `/surgeon` | Mission and crew selection, routine editing, long-term trend flags, and mock private messages. |
+| GET | `/cmo` | Mission crew roster, alerts, and onboard remedy inventory with stock adjustments. |
+| GET | `/surgeon` | Mission and crew selection, routine editing, trend flags, mock private messages, and read-only Artemis III remedy inventory. |
 
 All three pages currently render without login. The routes only separate the page interfaces; they do not restrict access. Add authentication and server-side authorization before treating any route or health data as private.
 
 ## Backend Status
 
-The current `backend/main.py` creates a FastAPI application but does not define application API routes. The frontend's routine data, crew, trends, messages, and simulated CO2 event are currently local mock state. The API paths below are a proposed integration contract, not implemented endpoints.
+The onboard Baymax API is organized by feature. `backend/app/core/` holds shared configuration and SQLite setup; `backend/app/remedies/` holds remedy API models, business logic, and routes. The frontend's routine data, crew, trends, messages, and simulated CO2 event are still local mock state. The remaining API paths below are a proposed integration contract, not implemented endpoints.
+
+### Onboard Remedy Inventory (Implemented Demo)
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/v1/remedies` | Return fictional catalog items, stock lots, locations, expiry, and available quantity. |
+| POST | `/api/v1/remedies/{remedyId}/stock-adjustments` | Record `used`, `received`, or `discarded` stock with a quantity, lot ID, and reason. |
+
+The database is SQLite at `backend/baymax.sqlite3` by default. Set `BAYMAX_DB_PATH` to use another location. On first startup, `backend/app/remedies/seed.sql` creates the remedy tables and inserts three fictional items and four lots; later restarts preserve stock changes. In Docker, mount a persistent volume at `/data` (for example `-v baymax-data:/data`). The backend image serves only the API; serve the frontend separately with `/api` routed to the backend. The Vite development server already proxies `/api` to FastAPI on port 8000, so run both with `make dev`.
+
+The CMO can record stock changes. The surgeon sees the same inventory without stock controls when Artemis III is selected. The other missions show an unavailable state because the demo backend does not provide mission-scoped inventories.
+
+This is a demonstration without authentication. The catalog's uses and procedure IDs are fictional; it does not prescribe treatment. Add server-side CMO authorization, real approved formulary content, and a review process before using actual medical inventory.
 
 ## Proposed API Contract
 

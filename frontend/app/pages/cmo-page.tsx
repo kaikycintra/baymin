@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { RemedyInventory } from "../components/remedy-inventory";
 import type { DemoPageProps } from "../demo-types";
 
 const crew = [
@@ -91,6 +92,7 @@ export function CmoPage({ anomalyActive, location }: DemoPageProps) {
           </section>
         </aside>
       </div>
+      <RemedyInventory canEdit />
     </>
   );
 }
