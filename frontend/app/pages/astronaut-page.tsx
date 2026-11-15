@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
 import type { DemoPageProps } from "../demo-types";
 
 type Task = {
@@ -12,7 +13,9 @@ type Task = {
 const initialTasks: Task[] = [
   { id: "hydration", time: "07:30", title: "Hydration & vitals", detail: "Morning check · 4 min", state: "done" },
   { id: "checkin", time: "09:00", title: "Circadian & mood check-in", detail: "Sleep quality and mood · 2 min", state: "now" },
+  { id: "cognitive-challenge", time: "09:15", title: "Daily cognitive challenge", detail: "Pattern recognition · 1 min", state: "next" },
   { id: "exercise", time: "11:30", title: "Resistance exercise", detail: "Lower-body protocol · 35 min", state: "next" },
+  { id: "daily-journal", time: "20:00", title: "Daily journal entry", detail: "Reflect on the day · 5 min", state: "next" },
 ];
 
 const sleepHistory = [
@@ -26,11 +29,8 @@ const sleepHistory = [
 ];
 
 export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
-  const [section, setSection] = useState<"routine" | "history">("routine");
+  const [section, setSection] = useState<"routine" | "checks" | "journal" | "history">("routine");
   const [completedTasks, setCompletedTasks] = useState<string[]>(["hydration"]);
-  const [sleepQuality, setSleepQuality] = useState(7);
-  const [mood, setMood] = useState("Steady");
-  const [checkinSaved, setCheckinSaved] = useState(false);
 
   function toggleTask(id: string) {
     setCompletedTasks((current) =>
@@ -64,6 +64,8 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
               <button
                 type="button"
                 role="tab"
+                id="health-tab-routine"
+                aria-controls="health-panel-routine"
                 aria-selected={section === "routine"}
                 className={section === "routine" ? "selected" : ""}
                 onClick={() => setSection("routine")}
@@ -73,6 +75,30 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
               <button
                 type="button"
                 role="tab"
+                id="health-tab-checks"
+                aria-controls="health-panel-checks"
+                aria-selected={section === "checks"}
+                className={section === "checks" ? "selected" : ""}
+                onClick={() => setSection("checks")}
+              >
+                Daily checks
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="health-tab-journal"
+                aria-controls="health-panel-journal"
+                aria-selected={section === "journal"}
+                className={section === "journal" ? "selected" : ""}
+                onClick={() => setSection("journal")}
+              >
+                Journal
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="health-tab-history"
+                aria-controls="health-panel-history"
                 aria-selected={section === "history"}
                 className={section === "history" ? "selected" : ""}
                 onClick={() => setSection("history")}
@@ -82,86 +108,80 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
             </div>
           </div>
 
-          {section === "routine" ? (
-            <>
-              <div className="routine-list">
-                {initialTasks.map((task) => {
-                  const done = completedTasks.includes(task.id);
-                  return (
-                    <div className={`routine-row ${done ? "is-complete" : ""}`} key={task.id}>
-                      <button
-                        className="task-check"
-                        type="button"
-                        aria-label={`${done ? "Mark incomplete" : "Mark complete"}: ${task.title}`}
-                        aria-pressed={done}
-                        onClick={() => toggleTask(task.id)}
-                      >
-                        {done ? "OK" : task.time}
-                      </button>
-                      <div className="routine-copy">
-                        <strong>{task.title}</strong>
-                        <span>{task.detail}</span>
-                      </div>
-                      <span className={`task-state state-${task.state}`}>{done ? "DONE" : task.state.toUpperCase()}</span>
-                    </div>
-                  );
-                })}
-              </div>
+          <div
+            className="health-tab-panel"
+            id="health-panel-journal"
+            role="tabpanel"
+            aria-labelledby="health-tab-journal"
+            hidden={section !== "journal"}
+          >
+            <DailyJournalPanel
+              onJournalSaved={() => setCompletedTasks((current) =>
+                current.includes("daily-journal") ? current : [...current, "daily-journal"],
+              )}
+            />
+          </div>
 
-              <form
-                className="checkin-panel"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  setCheckinSaved(true);
-                }}
-              >
-                <div className="checkin-title">
-                  <div>
-                    <span className="eyebrow">DAILY CHECK-IN</span>
-                    <h3>Circadian & mood</h3>
-                  </div>
-                  <span className="duration-tag">~2 MIN</span>
-                </div>
-                <label className="range-label" htmlFor="sleep-quality">
-                  <span>Sleep quality</span>
-                  <strong>{sleepQuality}<small> / 10</small></strong>
-                </label>
-                <input
-                  id="sleep-quality"
-                  type="range"
-                  min="1"
-                  max="10"
-                  value={sleepQuality}
-                  onChange={(event) => {
-                    setSleepQuality(Number(event.target.value));
-                    setCheckinSaved(false);
-                  }}
-                />
-                <div className="mood-row" aria-label="Select current mood">
-                  {(["Low", "Steady", "Good"] as const).map((option) => (
+          <div
+            className="health-tab-panel"
+            id="health-panel-routine"
+            role="tabpanel"
+            aria-labelledby="health-tab-routine"
+            hidden={section !== "routine"}
+          >
+            <div className="routine-list">
+              {initialTasks.map((task) => {
+                const done = completedTasks.includes(task.id);
+                return (
+                  <div className={`routine-row ${done ? "is-complete" : ""}`} key={task.id}>
                     <button
-                      key={option}
+                      className="task-check"
                       type="button"
-                      className={mood === option ? "mood-option selected" : "mood-option"}
-                      aria-pressed={mood === option}
-                      onClick={() => {
-                        setMood(option);
-                        setCheckinSaved(false);
-                      }}
+                      aria-label={`${done ? "Mark incomplete" : "Mark complete"}: ${task.title}`}
+                      aria-pressed={done}
+                      disabled={task.id === "cognitive-challenge"}
+                      onClick={() => toggleTask(task.id)}
                     >
-                      {option}
+                      {done ? "OK" : task.time}
                     </button>
-                  ))}
-                </div>
-                <div className="checkin-actions">
-                  <ReactionCheck />
-                  <button className="button button-primary" type="submit">
-                    {checkinSaved ? "Check-in saved" : "Save check-in"}
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : (
+                    <div className="routine-copy">
+                      <strong>{task.title}</strong>
+                      <span>{task.detail}</span>
+                    </div>
+                    <span className={`task-state state-${task.state}`}>{done ? "DONE" : task.state.toUpperCase()}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div
+            className="health-tab-panel"
+            id="health-panel-checks"
+            role="tabpanel"
+            aria-labelledby="health-tab-checks"
+            hidden={section !== "checks"}
+          >
+            <DailyChecksPanel
+              challengeCompleted={completedTasks.includes("cognitive-challenge")}
+              onCheckinSaved={() => setCompletedTasks((current) =>
+                current.includes("checkin") ? current : [...current, "checkin"],
+              )}
+              onChallengeComplete={() => setCompletedTasks((current) =>
+                current.includes("cognitive-challenge")
+                  ? current
+                  : [...current, "cognitive-challenge"],
+              )}
+            />
+          </div>
+
+          <div
+            className="health-tab-panel"
+            id="health-panel-history"
+            role="tabpanel"
+            aria-labelledby="health-tab-history"
+            hidden={section !== "history"}
+          >
             <div className="history-view">
               <div className="history-summary">
                 <div><span className="eyebrow">7-DAY SLEEP AVG</span><strong>7.6 <small>hr</small></strong></div>
@@ -186,7 +206,7 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
                 {anomalyActive && <p className="footnote">* Simulated reading during the active environmental event.</p>}
               </div>
             </div>
-          )}
+          </div>
         </section>
 
         <aside className="side-column">
@@ -219,7 +239,309 @@ export function AstronautPage({ anomalyActive, location }: DemoPageProps) {
           </section>
         </aside>
       </div>
+
     </>
+  );
+}
+
+function DailyChecksPanel({
+  challengeCompleted,
+  onCheckinSaved,
+  onChallengeComplete,
+}: {
+  challengeCompleted: boolean;
+  onCheckinSaved: () => void;
+  onChallengeComplete: () => void;
+}) {
+  const [sleepQuality, setSleepQuality] = useState(7);
+  const [stress, setStress] = useState(2);
+  const [energy, setEnergy] = useState(3);
+  const [mood, setMood] = useState("Steady");
+  const [lightExposure, setLightExposure] = useState("Typical");
+  const [workload, setWorkload] = useState("Typical");
+  const [saved, setSaved] = useState(false);
+
+  function saveCheckin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaved(true);
+    onCheckinSaved();
+  }
+
+  return (
+    <div className="daily-checks">
+      <form className="checkin-panel" onSubmit={saveCheckin}>
+        <div className="checkin-title">
+          <div>
+            <span className="eyebrow">DAILY SELF-REPORT</span>
+            <h3>Circadian, mood & context</h3>
+          </div>
+          <span className="duration-tag">~2 MIN</span>
+        </div>
+
+        <div className="wellbeing-scales">
+          <label className="range-label" htmlFor="sleep-quality">
+            <span>Sleep quality</span><strong>{sleepQuality}<small> / 10</small></strong>
+          </label>
+          <input id="sleep-quality" type="range" min="1" max="10" value={sleepQuality} onChange={(event) => { setSleepQuality(Number(event.target.value)); setSaved(false); }} />
+          <label className="range-label" htmlFor="stress-level">
+            <span>Perceived stress</span><strong>{stress}<small> / 5</small></strong>
+          </label>
+          <input id="stress-level" type="range" min="1" max="5" value={stress} onChange={(event) => { setStress(Number(event.target.value)); setSaved(false); }} />
+          <label className="range-label" htmlFor="energy-level">
+            <span>Energy</span><strong>{energy}<small> / 5</small></strong>
+          </label>
+          <input id="energy-level" type="range" min="1" max="5" value={energy} onChange={(event) => { setEnergy(Number(event.target.value)); setSaved(false); }} />
+        </div>
+
+        <fieldset className="mood-fieldset">
+          <legend>Current mood</legend>
+          <div className="mood-row">
+            {(["Low", "Steady", "Good"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={mood === option ? "mood-option selected" : "mood-option"}
+                aria-pressed={mood === option}
+                onClick={() => { setMood(option); setSaved(false); }}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <div className="daily-context-fields">
+          <label className="field-label">LIGHT EXPOSURE
+            <select value={lightExposure} onChange={(event) => { setLightExposure(event.target.value); setSaved(false); }}>
+              <option>Low</option><option>Typical</option><option>High</option>
+            </select>
+          </label>
+          <label className="field-label">WORKLOAD
+            <select value={workload} onChange={(event) => { setWorkload(event.target.value); setSaved(false); }}>
+              <option>Light</option><option>Typical</option><option>Heavy</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="checkin-save-row">
+          <p className="self-report-note">Personal context helps track changes over time; it is not a diagnosis.</p>
+          <button className="button button-primary" type="submit">{saved ? "Check-in saved" : "Save daily check-in"}</button>
+        </div>
+      </form>
+
+      <section className="daily-tests" aria-labelledby="daily-tests-title">
+        <div className="daily-tests-heading">
+          <div><span className="eyebrow">DAILY COGNITIVE BATTERY</span><h3 id="daily-tests-title">Memory, attention & reaction</h3></div>
+          <span className="duration-tag">~3 MIN</span>
+        </div>
+        <p className="self-report-note">Repeat under similar conditions and compare with your own baseline. These brief demos are not diagnostic tests.</p>
+        <DailyCognitiveChallenge completed={challengeCompleted} onComplete={onChallengeComplete} />
+        <MemoryRecallTest />
+        <AttentionScanTest />
+        <section className="daily-challenge reaction-test">
+          <div className="challenge-heading">
+            <div><span className="eyebrow">VIGILANCE</span><h3>Reaction time</h3></div>
+            <span className="duration-tag">30 SEC</span>
+          </div>
+          <ReactionCheck />
+        </section>
+      </section>
+    </div>
+  );
+}
+
+function DailyJournalPanel({ onJournalSaved }: { onJournalSaved: () => void }) {
+  const [entry, setEntry] = useState("");
+  const [savedEntry, setSavedEntry] = useState("");
+  const [savedTime, setSavedTime] = useState("");
+
+  function saveEntry(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedEntry = entry.trim();
+    if (!trimmedEntry) return;
+    setSavedEntry(trimmedEntry);
+    setSavedTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    onJournalSaved();
+  }
+
+  return (
+    <section className="daily-journal" aria-labelledby="journal-title">
+      <div className="journal-heading">
+        <div>
+          <span className="eyebrow">PRIVATE DAILY REFLECTION</span>
+          <h3 id="journal-title">How was your day?</h3>
+        </div>
+        <span className="duration-tag">MISSION DAY 018</span>
+      </div>
+      <p className="journal-prompt">Write about what stood out today. You can include mood, sleep, workload, relationships, symptoms, medication, light exposure, or mission events.</p>
+      <form className="journal-form" onSubmit={saveEntry}>
+        <label className="sr-only" htmlFor="daily-journal-entry">Daily journal entry</label>
+        <textarea
+          id="daily-journal-entry"
+          value={entry}
+          maxLength={3000}
+          rows={9}
+          placeholder="Start your entry..."
+          onChange={(event) => setEntry(event.target.value)}
+        />
+        <div className="journal-actions">
+          <span className="journal-count">{entry.length} / 3000</span>
+          <button className="button button-primary" type="submit" disabled={!entry.trim()}>
+            Save journal entry
+          </button>
+        </div>
+      </form>
+      {savedEntry && (
+        <article className="saved-journal-entry" aria-live="polite">
+          <div className="saved-journal-heading">
+            <span className="eyebrow">TODAY'S ENTRY</span>
+            <time>Saved locally · {savedTime}</time>
+          </div>
+          <p>{savedEntry}</p>
+        </article>
+      )}
+      <p className="journal-disclaimer">Entries are stored only in this demo session and are not sent to mission control.</p>
+    </section>
+  );
+}
+
+function MemoryRecallTest() {
+  const [phase, setPhase] = useState<"ready" | "showing" | "recall" | "complete">("ready");
+  const [sequence, setSequence] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState("");
+
+  useEffect(() => {
+    if (phase !== "showing") return;
+    const timer = window.setTimeout(() => setPhase("recall"), 3500);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
+
+  function startTest() {
+    setSequence(Array.from({ length: 5 }, () => Math.floor(Math.random() * 9) + 1).join(""));
+    setAnswer("");
+    setFeedback("");
+    setPhase("showing");
+  }
+
+  function submitAnswer(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (answer === sequence) {
+      setFeedback("Sequence matched. Test complete.");
+      setPhase("complete");
+      return;
+    }
+    setFeedback("That sequence did not match. Try again.");
+    setAnswer("");
+  }
+
+  return (
+    <section className="daily-challenge memory-test">
+      <div className="challenge-heading">
+        <div><span className="eyebrow">WORKING MEMORY</span><h3>Remember the sequence</h3></div>
+        <span className="duration-tag">~1 MIN</span>
+      </div>
+      {phase === "ready" && <p className="test-instructions">Memorize the five digits, then enter them in order.</p>}
+      {phase === "showing" && <p className="memory-sequence" aria-live="assertive">{sequence.split("").join(" · ")}</p>}
+      {phase === "recall" && (
+        <form className="memory-answer-form" onSubmit={submitAnswer}>
+          <label className="sr-only" htmlFor="memory-answer">Enter the five digits in order</label>
+          <input id="memory-answer" type="text" inputMode="numeric" autoComplete="off" maxLength={5} value={answer} placeholder="Enter 5 digits" onChange={(event) => setAnswer(event.target.value.replace(/\D/g, ""))} />
+          <button className="button button-secondary" type="submit" disabled={answer.length !== 5}>Check sequence</button>
+        </form>
+      )}
+      {phase === "complete" && <p className="test-feedback" role="status">{feedback}</p>}
+      {phase === "ready" || phase === "complete" ? (
+        <button className="button button-secondary" type="button" onClick={startTest}>{phase === "complete" ? "Try a new sequence" : "Start memory test"}</button>
+      ) : null}
+      {feedback && phase !== "complete" && <p className="test-feedback" role="status">{feedback}</p>}
+    </section>
+  );
+}
+
+function AttentionScanTest() {
+  const [complete, setComplete] = useState(false);
+  const [feedback, setFeedback] = useState("");
+
+  function answerScan(answer: number) {
+    if (answer === 5) {
+      setComplete(true);
+      setFeedback("Correct. Target scan complete.");
+      return;
+    }
+    setFeedback("Not quite. Count the target symbol again.");
+  }
+
+  return (
+    <section className="daily-challenge attention-test">
+      <div className="challenge-heading">
+        <div><span className="eyebrow">SELECTIVE ATTENTION</span><h3>Count the target</h3></div>
+        <span className="duration-tag">~1 MIN</span>
+      </div>
+      <p className="test-instructions">How many times does 7 appear in this sequence?</p>
+      <p className="attention-sequence" aria-label="7, 2, 7, 4, 1, 7, 9, 7, 5, 2, 7">7 <span>2</span> 7 <span>4</span> <span>1</span> 7 <span>9</span> 7 <span>5</span> <span>2</span> 7</p>
+      {complete ? (
+        <p className="test-feedback" role="status">{feedback}</p>
+      ) : (
+        <>
+          <div className="challenge-answers" role="group" aria-label="Number of target symbols">
+            {[4, 5, 6].map((answer) => <button className="challenge-answer" key={answer} type="button" onClick={() => answerScan(answer)}>{answer}</button>)}
+          </div>
+          {feedback && <p className="test-feedback" role="status">{feedback}</p>}
+        </>
+      )}
+    </section>
+  );
+}
+
+function DailyCognitiveChallenge({
+  completed,
+  onComplete,
+}: {
+  completed: boolean;
+  onComplete: () => void;
+}) {
+  const [feedback, setFeedback] = useState("");
+
+  function submitAnswer(answer: number) {
+    if (answer === 32) {
+      setFeedback("Correct. Today's challenge is complete.");
+      onComplete();
+      return;
+    }
+    setFeedback("Not quite. Try another answer.");
+  }
+
+  return (
+    <section className="daily-challenge" aria-labelledby="daily-challenge-title">
+      <div className="challenge-heading">
+        <div>
+          <span className="eyebrow">DAILY COGNITIVE CHALLENGE</span>
+          <h3 id="daily-challenge-title">Complete the sequence</h3>
+        </div>
+        <span className="duration-tag">~1 MIN</span>
+      </div>
+      <p className="challenge-prompt">2 <span>/</span> 4 <span>/</span> 8 <span>/</span> 16 <span>/</span> ?</p>
+      {completed ? (
+        <p className="challenge-feedback" role="status">{feedback || "Today's challenge is complete."}</p>
+      ) : (
+        <>
+          <div className="challenge-answers" role="group" aria-label="Choose the next number">
+            {[24, 30, 32].map((answer) => (
+              <button
+                className="challenge-answer"
+                key={answer}
+                type="button"
+                onClick={() => submitAnswer(answer)}
+              >
+                {answer}
+              </button>
+            ))}
+          </div>
+          <p className="challenge-feedback" role="status" aria-live="polite">{feedback || "Choose the next number in the pattern."}</p>
+        </>
+      )}
+    </section>
   );
 }
 
@@ -281,7 +603,7 @@ function ReactionCheck() {
       </div>
       {running ? (
         <button
-          className={`reaction-target ${targetVisible ? "target-ready" : ""}`}
+          className={`challenge-answer reaction-target ${targetVisible ? "target-ready" : ""}`}
           type="button"
           disabled={!targetVisible}
           onClick={recordResponse}
@@ -290,7 +612,7 @@ function ReactionCheck() {
           {targetVisible ? "TAP" : "WAIT"}
         </button>
       ) : (
-        <button className="button button-secondary" type="button" onClick={startTest}>
+        <button className="challenge-answer reaction-start" type="button" onClick={startTest}>
           {finished ? "Run again" : "Begin test"}
         </button>
       )}
