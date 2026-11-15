@@ -1,0 +1,186 @@
+/*
+  Medical flow styles, matched to the app's minimalist system:
+  white page, rules instead of boxed cards, DM Sans / Space Grotesk / IBM Plex Mono,
+  teal / amber / red accents. Everything is scoped under .mf.
+
+  Tokens read the app's :root variables (--ink, --muted, --line, --teal, ...) and fall back to
+  the same values, so the module still looks right if it is used standalone.
+  Text sizes for questions, answers and steps are intentionally a step larger than the dashboard's
+  10-12px, because these screens are used under stress.
+*/
+.mf {
+  --mf-ink: var(--ink, #151715);
+  --mf-muted: var(--muted, #6b716d);
+  --mf-line: var(--line, #bfc6c1);
+  --mf-rule: #aab2ad;
+  --mf-rule-strong: #939c96;
+  --mf-teal: var(--teal, #477363);
+  --mf-teal-dark: var(--teal-dark, #315b4c);
+  --mf-amber: var(--amber, #896127);
+  --mf-red: var(--red, #9b4139);
+  --mf-hover: #f3f6f4;
+  --mf-press: #e9efeb;
+  --mf-display: var(--display, "Space Grotesk", sans-serif);
+  --mf-mono: var(--mono, "IBM Plex Mono", monospace);
+  --mf-body: "DM Sans", sans-serif;
+
+  /* Severity colours (also always shown as text, never colour alone) */
+  --mf-self: var(--mf-teal);
+  --mf-monitor: var(--mf-ink);
+  --mf-cmo: var(--mf-amber);
+  --mf-urgent: #a4532b;
+  --mf-emergency: var(--mf-red);
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 46rem;
+  color: var(--mf-ink);
+  font-family: var(--mf-body);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.mf *, .mf *::before, .mf *::after { box-sizing: border-box; }
+.mf button, .mf input, .mf textarea { font: inherit; color: inherit; }
+.mf button { cursor: pointer; }
+.mf :focus-visible { outline: 3px solid #68bcb1; outline-offset: 3px; }
+.mf-visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* Type */
+.mf-h1 { margin: 0 0 18px; font: 500 clamp(26px, 3vw, 34px)/1.15 var(--mf-display); letter-spacing: 0; }
+.mf-h3 { margin: 0 0 8px; font: 500 18px/1.25 var(--mf-display); }
+.mf-question { margin: 0 0 22px; font: 500 clamp(22px, 2.6vw, 26px)/1.25 var(--mf-display); letter-spacing: 0; }
+
+/* Header */
+.mf-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 22px; padding-bottom: 12px;
+  border-bottom: 2px solid var(--mf-rule);
+}
+.mf-header-title { color: var(--mf-muted); font: 500 10px/1.4 var(--mf-mono); letter-spacing: .055em; }
+
+/* Buttons: same vocabulary as the app (.journal-save-button, .journal-record-button, .button) */
+.mf-btn {
+  display: inline-flex; min-height: 44px; align-items: center; justify-content: center;
+  padding: 0 16px; border: 1px solid transparent; border-radius: 3px;
+  font: 600 12px var(--mf-display); transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.mf-btn-primary { border-color: var(--mf-ink); color: #fff; background: var(--mf-ink); }
+.mf-btn-primary:hover { border-color: var(--mf-teal-dark); background: var(--mf-teal-dark); }
+.mf-btn-secondary { border-color: var(--mf-rule); color: var(--mf-ink); background: #fff; font-weight: 500; }
+.mf-btn-secondary:hover { border-color: var(--mf-ink); background: var(--mf-hover); }
+.mf-btn-quiet {
+  min-height: 36px; padding: 0 0 3px; border-width: 0 0 1px; border-radius: 0;
+  border-color: currentColor; color: var(--mf-ink); background: transparent; font-weight: 600;
+}
+.mf-btn-quiet:hover { color: var(--mf-teal-dark); }
+
+/* Card is just a section: no box */
+.mf-card { padding: 0; }
+
+/* Answers: same look as the app's challenge answers, larger for stress. Yes and No are identical. */
+.mf-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mf-answer {
+  min-height: 60px; border: 1px solid var(--mf-rule); border-radius: 3px;
+  color: var(--mf-ink); background: #fff; font: 500 16px var(--mf-mono);
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+.mf-answer:hover { border-color: var(--mf-ink); background: var(--mf-hover); }
+.mf-answer:active { transform: translateY(1px); background: var(--mf-press); }
+.mf-answer-unsure { grid-column: 1 / -1; min-height: 48px; border-style: dashed; font-size: 13px; color: var(--mf-muted); }
+
+.mf-help { margin: -8px 0 20px; color: var(--mf-muted); font-size: 12px; }
+.mf-help summary { cursor: pointer; }
+.mf-help p { margin: 8px 0 0; line-height: 1.6; }
+
+/* Instruction list: ruled rows, mono labels */
+.mf-steps { margin: 18px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--mf-line); }
+.mf-step {
+  display: grid; grid-template-columns: 96px 1fr; column-gap: 14px; row-gap: 4px;
+  padding: 13px 0 13px 12px; border-bottom: 1px solid var(--mf-line); border-left: 2px solid transparent;
+}
+.mf-step-kind { padding-top: 3px; color: var(--mf-muted); font: 10px/1.4 var(--mf-mono); letter-spacing: .02em; }
+.mf-step-text { grid-column: 2; font-size: 15px; line-height: 1.55; }
+.mf-step-warning { grid-column: 2; color: var(--mf-amber); font-size: 12px; line-height: 1.5; }
+.mf-step-medication { border-left-color: var(--mf-amber); }
+.mf-step-call { border-left-color: var(--mf-red); }
+.mf-step-monitor, .mf-step-observe { border-left-color: var(--mf-ink); }
+.mf-step-measure, .mf-step-exam, .mf-step-lab { border-left-color: var(--mf-teal); }
+
+/* Timer */
+.mf-timer { margin: 18px 0 20px; }
+.mf-timer-readout { font: 500 28px var(--mf-display); font-variant-numeric: tabular-nums; }
+.mf-card > .mf-btn { margin-top: 20px; }
+.mf-timer + .mf-btn { margin-top: 0; }
+
+/* Outcome: a heavy top rule in the severity colour, coloured label, no filled banner */
+.mf-outcome { --mf-level: var(--mf-self); }
+.mf-outcome-banner { padding: 14px 0 18px; border-top: 3px solid var(--mf-level); }
+.mf-outcome-level { display: block; margin-bottom: 6px; color: var(--mf-level); font: 500 10px/1.4 var(--mf-mono); letter-spacing: .055em; }
+.mf-outcome-title { margin: 0; font: 500 clamp(24px, 3vw, 30px)/1.2 var(--mf-display); letter-spacing: 0; }
+.mf-outcome-banner p { margin: 8px 0 0; color: var(--mf-muted); }
+.mf-level-self_care { --mf-level: var(--mf-self); }
+.mf-level-monitor { --mf-level: var(--mf-monitor); }
+.mf-level-cmo_evaluation { --mf-level: var(--mf-cmo); }
+.mf-level-urgent { --mf-level: var(--mf-urgent); }
+.mf-level-emergency { --mf-level: var(--mf-emergency); }
+.mf-level-urgent .mf-outcome-title, .mf-level-emergency .mf-outcome-title { color: var(--mf-level); }
+.mf-outcome-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 26px; }
+
+/* Report */
+.mf-report { margin-top: 30px; padding-top: 18px; border-top: 2px solid var(--mf-rule-strong); }
+.mf-report-lead { margin: 0 0 14px; color: var(--mf-muted); font-size: 12px; line-height: 1.6; }
+.mf-note { display: grid; gap: 7px; margin-bottom: 14px; color: var(--mf-muted); font: 9px var(--mf-mono); }
+.mf-note textarea {
+  width: 100%; min-height: 82px; padding: 9px 0; resize: vertical; border: 0;
+  border-bottom: 1px solid var(--mf-line); border-radius: 0; background: transparent;
+  color: var(--mf-ink); font: 13px/1.5 var(--mf-body);
+}
+.mf-preview { margin-bottom: 16px; color: var(--mf-muted); font-size: 12px; }
+.mf-preview summary { cursor: pointer; }
+.mf-preview pre {
+  margin: 10px 0 0; padding: 12px 0; white-space: pre-wrap; overflow-wrap: anywhere;
+  border-top: 1px solid var(--mf-line); border-bottom: 1px solid var(--mf-line);
+  color: var(--mf-ink); font: 10px/1.7 var(--mf-mono);
+}
+.mf-report-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.mf-queued { margin: 0; color: var(--mf-teal-dark); font-size: 12px; font-weight: 600; }
+
+/* Picker: ruled rows, like the app's routine list */
+.mf-search input {
+  display: block; width: 100%; min-height: 44px; margin-bottom: 8px; padding: 8px 0;
+  border: 0; border-bottom: 1px solid var(--mf-line); border-radius: 0;
+  background: transparent; color: var(--mf-ink); font: 14px var(--mf-body);
+}
+.mf-search input::placeholder { color: #8a908c; }
+.mf-picker-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--mf-line); }
+.mf-picker-list li { border-bottom: 1px solid var(--mf-line); }
+.mf-picker-item {
+  display: grid; width: 100%; gap: 4px; padding: 16px 8px; border: 0; border-left: 2px solid transparent;
+  color: var(--mf-ink); background: transparent; text-align: left;
+}
+.mf-picker-item:hover { border-left-color: var(--mf-ink); }
+.mf-picker-title { font: 500 18px/1.25 var(--mf-display); }
+.mf-picker-desc { color: var(--mf-muted); font-size: 12px; }
+.mf-badge { justify-self: start; margin-top: 3px; color: var(--mf-amber); font: 9px var(--mf-mono); }
+.mf-empty { margin: 16px 0 0; color: var(--mf-muted); font-size: 12px; }
+
+/* Path + disclaimer */
+.mf-path { margin-top: 28px; color: var(--mf-muted); font-size: 12px; }
+.mf-path summary { cursor: pointer; }
+.mf-path ul { margin: 10px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--mf-line); }
+.mf-path li { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--mf-line); }
+.mf-path strong { flex: 0 0 auto; color: var(--mf-ink); font: 500 10px var(--mf-mono); }
+.mf-disclaimer { margin: 22px 0 0; color: var(--mf-muted); font-size: 11px; line-height: 1.55; }
+
+@media (max-width: 580px) {
+  .mf-answers { grid-template-columns: 1fr; }
+  .mf-step { grid-template-columns: 1fr; padding-left: 10px; }
+  .mf-step-text, .mf-step-warning { grid-column: 1; }
+  .mf-outcome-actions { align-items: flex-start; flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf *, .mf *::before, .mf *::after { transition-duration: .01ms !important; }
+}
