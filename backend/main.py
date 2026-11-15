@@ -1,18 +1,18 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from typing import List, Dict
-from pathlib import Path
-import os
+"""Baymax onboard API entry point."""
 
-app = FastAPI()
+from contextlib import asynccontextmanager
 
-PROJECT_ROOT = Path(__file__).parent.parent
-DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
-ENVIRONMENT = os.getenv("FASTAPI_ENV", "production")
+from fastapi import FastAPI
 
-if ENVIRONMENT == "production":
-    app.frontend(
-        "/", 
-        directory=str(DIST_DIR), 
-        fallback="index.html", 
-    )
+from app.remedies.service import init_inventory
+from app.remedies.views import router as remedies_router
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_inventory()
+    yield
+
+
+app = FastAPI(title="Baymax Onboard API", lifespan=lifespan)
+app.include_router(remedies_router)
