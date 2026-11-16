@@ -18,7 +18,7 @@ export function DemoHeader({ actor, onActorChange }: Props) {
       <header className="topbar demo-topbar">
         <div className="header-identity">
           <Link className="brand-lockup" to="/" aria-label="Baymin mission health, back to the overview">
-            <img className="brand-mark" src="/baymin-logo.png" alt="" aria-hidden="true" />
+            <img className="brand-mark" src={`${import.meta.env.BASE_URL}baymin-logo.png`} alt="" aria-hidden="true" />
             <span><strong>BAYMIN</strong><small>MISSION HEALTH</small></span>
           </Link>
           <span className="identity-rule" aria-hidden="true" />

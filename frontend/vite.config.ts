@@ -8,4 +8,5 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  base: process.env.BASE_PATH ?? "/",
 });

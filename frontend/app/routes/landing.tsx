@@ -64,7 +64,7 @@ export default function Landing() {
     <div className="landing">
       <header className="landing-bar">
         <Link className="brand-lockup" to="/" aria-label="Baymin mission health">
-          <img className="brand-mark" src="/baymin-logo.png" alt="" aria-hidden="true" />
+          <img className="brand-mark" src={`${import.meta.env.BASE_URL}baymin-logo.png`} alt="" aria-hidden="true" />
           <span><strong>BAYMIN</strong><small>MISSION HEALTH</small></span>
         </Link>
         <nav className="landing-nav" aria-label="Main">
@@ -93,7 +93,7 @@ export default function Landing() {
                 <Link to="/demo" className="landing-button landing-button-primary">Open the demo</Link>
                 <Link to="/demo?actor=base" className="landing-button">See the base station</Link>
                 <a 
-                  href="https://github.com/kaikycintra/baymax" 
+                  href="https://github.com/kaikycintra/baymin" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="landing-button"
