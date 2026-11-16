@@ -92,6 +92,13 @@ export default function Landing() {
               <div className="landing-actions">
                 <Link to="/demo" className="landing-button landing-button-primary">Open the demo</Link>
                 <Link to="/demo?actor=base" className="landing-button">See the base station</Link>
+                <a 
+                  href="https://github.com/kaikycintra/baymax" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="landing-button"
+                >View the repository and read about the project!
+                </a>
               </div>
             </div>
             <aside aria-label="Example event trace">
