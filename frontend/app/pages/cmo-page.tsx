@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { RemedyInventory } from "../components/remedy-inventory";
 import type { DemoPageProps } from "../demo-types";
+import { SyncedHealthHistory } from "../demo/history/SyncedHealthHistory";
 
 const crew = [
   { name: "Maya Chen", role: "Commander · EVA lead", sleep: "7.6 h", cognitive: "286 ms", status: "Monitoring" },
@@ -58,6 +59,7 @@ export function CmoPage({ anomalyActive, location }: DemoPageProps) {
             <div><span className="eyebrow">SELECTED CREW MEMBER</span><h3>{selectedMember.name}</h3><p>{selectedMember.role}</p></div>
             <div className="member-measures"><span>7-day sleep avg <strong>{selectedMember.sleep}</strong></span><span>Reaction avg <strong>{selectedMember.cognitive}</strong></span></div>
           </div>
+          <SyncedHealthHistory crewName={selectedMember.name} viewer="server" className="hh-spaced" />
         </section>
 
         <aside className="side-column">

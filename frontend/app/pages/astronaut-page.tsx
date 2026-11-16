@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import type { DemoPageProps } from "../demo-types";
+import type { CheckinValues, DemoPageProps } from "../demo-types";
+import { SyncedHealthHistory } from "../demo/history/SyncedHealthHistory";
+import { MISSION } from "../demo/sim/constants";
 
 type Task = {
   id: string;
@@ -27,17 +29,7 @@ const initialTasks: Task[] = [
   { id: "daily-journal", time: "20:00", title: "Daily journal entry", detail: "Reflect on the day · 5 min", state: "next" },
 ];
 
-const sleepHistory = [
-  { day: "M", hours: 7.4, score: 78 },
-  { day: "T", hours: 8.1, score: 84 },
-  { day: "W", hours: 6.8, score: 69 },
-  { day: "T", hours: 7.2, score: 74 },
-  { day: "F", hours: 8.3, score: 89 },
-  { day: "S", hours: 7.9, score: 82 },
-  { day: "S", hours: 7.6, score: 80 },
-];
-
-export function AstronautPage({ anomalyActive, location, now, missionDay, heartRate, spo2 }: DemoPageProps) {
+export function AstronautPage({ anomalyActive, onCheckin, location, now, missionDay, heartRate, spo2 }: DemoPageProps) {
   // Live values from the simulator. They fall back to the old demo numbers when used standalone.
   const liveHeartRate = heartRate ?? (anomalyActive ? 112 : 68);
   const liveSpo2 = spo2 ?? 98;
@@ -193,9 +185,12 @@ export function AstronautPage({ anomalyActive, location, now, missionDay, heartR
           >
             <DailyChecksPanel
               challengeCompleted={completedTasks.includes("cognitive-challenge")}
-              onCheckinSaved={() => setCompletedTasks((current) =>
-                current.includes("checkin") ? current : [...current, "checkin"],
-              )}
+              onCheckinSaved={(values) => {
+                setCompletedTasks((current) =>
+                  current.includes("checkin") ? current : [...current, "checkin"],
+                );
+                onCheckin?.(values);
+              }}
               onChallengeComplete={() => setCompletedTasks((current) =>
                 current.includes("cognitive-challenge")
                   ? current
@@ -212,28 +207,7 @@ export function AstronautPage({ anomalyActive, location, now, missionDay, heartR
             hidden={section !== "history"}
           >
             <div className="history-view">
-              <div className="history-summary">
-                <div><span className="eyebrow">7-DAY SLEEP AVG</span><strong>7.6 <small>hr</small></strong></div>
-                <div><span className="eyebrow">COGNITIVE CHECK</span><strong>286 <small>ms</small></strong></div>
-                <div><span className="eyebrow">MOOD TREND</span><strong>Stable</strong></div>
-              </div>
-              <h3>Sleep quality · last 7 days</h3>
-              <div className="trend-chart" role="img" aria-label="Sleep quality scores across the last seven days">
-                {sleepHistory.map((entry, index) => (
-                  <div className="trend-column" key={`${entry.day}-${index}`}>
-                    <span className="trend-value">{entry.score}</span>
-                    <div className="trend-track"><i style={{ height: `${entry.score}%` }} /></div>
-                    <span className="trend-day">{entry.day}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="history-table">
-                <div className="history-row history-header"><span>MEASUREMENT</span><span>TODAY</span><span>7-DAY TREND</span></div>
-                <div className="history-row"><span>Resting heart rate</span><strong>{liveHeartRate} bpm{anomalyActive ? "*" : ""}</strong><span className="trend-neutral">Baseline</span></div>
-                <div className="history-row"><span>Blood pressure</span><strong>118 / 76</strong><span className="trend-positive">Within range</span></div>
-                <div className="history-row"><span>Sleep duration</span><strong>7 h 36 m</strong><span className="trend-neutral">+ 18 min</span></div>
-                {anomalyActive && <p className="footnote">* Simulated reading during the active environmental event.</p>}
-              </div>
+              <SyncedHealthHistory crewName={MISSION.astronaut} viewer="self" />
               <JournalHistory entries={journalEntries} />
             </div>
           </div>
@@ -280,7 +254,7 @@ function DailyChecksPanel({
   onChallengeComplete,
 }: {
   challengeCompleted: boolean;
-  onCheckinSaved: () => void;
+  onCheckinSaved: (values: CheckinValues) => void;
   onChallengeComplete: () => void;
 }) {
   const [sleepQuality, setSleepQuality] = useState(7);
@@ -294,7 +268,7 @@ function DailyChecksPanel({
   function saveCheckin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaved(true);
-    onCheckinSaved();
+    onCheckinSaved({ sleepQuality, stress, energy, mood });
   }
 
   return (

@@ -1,0 +1,92 @@
+/* Save as: app/demo/history/history.css */
+/*
+  Health history. Colour coding:
+    teal  = in range     amber = watch     red = out of range
+  Every status also has a text label and a different shape (circle, diamond, square),
+  so nothing depends on colour alone. Uses the app's tokens and falls back to the same values.
+*/
+.hh {
+  --hh-ok: var(--teal-dark, #315b4c);
+  --hh-watch: var(--amber, #896127);
+  --hh-alert: var(--red, #9b4139);
+  --hh-ink: var(--ink, #151715);
+  --hh-muted: var(--muted, #6b716d);
+  --hh-line: var(--line, #bfc6c1);
+  --hh-display: var(--display, "Space Grotesk", sans-serif);
+  --hh-mono: var(--mono, "IBM Plex Mono", monospace);
+  min-width: 0;
+  color: var(--hh-ink);
+}
+.hh-spaced { margin-top: 30px; padding-top: 20px; border-top: 2px solid #939c96; }
+.hh-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.hh-ok { color: var(--hh-ok); }
+.hh-watch { color: var(--hh-watch); }
+.hh-alert { color: var(--hh-alert); }
+
+/* Header */
+.hh-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; padding-bottom: 13px; border-bottom: 2px solid #aab2ad; }
+.hh-head h2 { margin: 4px 0 0; font: 500 20px/1.2 var(--hh-display); letter-spacing: 0; }
+.hh-sync { display: flex; align-items: center; gap: 7px; color: var(--hh-muted); font: 9px/1.4 var(--hh-mono); }
+.hh-sync i { width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; background: var(--hh-ok); }
+.hh-sync.is-warn { color: var(--hh-watch); }
+.hh-sync.is-warn i { background: var(--hh-watch); }
+.hh-tools { display: flex; flex-wrap: wrap; align-items: center; padding: 12px 0 4px; }
+
+/* Status summary */
+.hh-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 10px 0 14px; border-bottom: 1px solid var(--hh-line); }
+.hh-summary > div { display: grid; gap: 4px; }
+.hh-summary-label { display: flex; align-items: center; gap: 6px; font: 9px/1.4 var(--hh-mono); }
+.hh-summary strong { font: 500 26px/1.1 var(--hh-display); }
+
+/* Status marks: circle, diamond, square */
+.hh-mark { display: inline-block; width: 8px; height: 8px; flex: 0 0 8px; background: currentColor; vertical-align: baseline; }
+.hh-mark-ok { border-radius: 50%; }
+.hh-mark-watch { transform: rotate(45deg) scale(.92); }
+.hh-mark-alert { border-radius: 0; }
+
+/* Groups and rows */
+.hh-group { margin-top: 22px; }
+.hh-group-title { display: block; padding-bottom: 7px; border-bottom: 1px solid var(--hh-line); color: var(--hh-muted); }
+.hh-row {
+  display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) 84px 92px; align-items: center; gap: 10px;
+  padding: 12px 4px 12px 8px; border: 0; border-bottom: 1px solid var(--hh-line); border-left: 2px solid transparent;
+  color: inherit; background: transparent; text-align: left; font: inherit; cursor: pointer;
+}
+.hh-row:hover, .hh-row[aria-expanded="true"] { border-left-color: var(--hh-ink); }
+.hh-name { display: grid; gap: 3px; min-width: 0; }
+.hh-name strong { font-size: 12px; font-weight: 600; }
+.hh-trend { color: var(--hh-muted); font: 9px/1.4 var(--hh-mono); }
+.hh-trend-improving { color: var(--hh-ok); }
+.hh-trend-worsening { color: var(--hh-watch); }
+.hh-latest { display: grid; justify-items: end; gap: 3px; text-align: right; }
+.hh-value { font: 600 17px/1.1 var(--hh-display); white-space: nowrap; }
+.hh-value small, .hh-table small { color: var(--hh-muted); font: 400 10px "DM Sans", sans-serif; }
+.hh-status { display: inline-flex; align-items: center; gap: 5px; color: var(--hh-muted); font: 9px/1.4 var(--hh-mono); white-space: nowrap; }
+.hh-status.hh-ok { color: var(--hh-ok); }
+.hh-status.hh-watch { color: var(--hh-watch); }
+.hh-status.hh-alert { color: var(--hh-alert); }
+
+/* Charts */
+.hh-spark { display: block; width: 84px; height: 30px; overflow: visible; }
+.hh-band { fill: rgba(71, 115, 99, .13); }
+.hh-line { stroke: var(--hh-muted); stroke-width: 1.2; stroke-linejoin: round; }
+.hh-detail { padding: 8px 8px 20px 12px; border-bottom: 1px solid var(--hh-line); border-left: 2px solid var(--hh-ink); }
+.hh-summary-line { margin: 4px 0 8px; color: var(--hh-muted); font-size: 11px; line-height: 1.6; }
+.hh-chart { display: block; width: 100%; height: auto; }
+.hh-axis { stroke: var(--hh-line); stroke-width: 1; }
+.hh-axis-label { fill: var(--hh-muted); font: 8px var(--hh-mono); }
+.hh-note { margin: 8px 0 0; color: var(--hh-muted); font-size: 10px; line-height: 1.6; }
+.hh-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 22px; }
+
+/* Table */
+.hh-table { width: 100%; margin-top: 12px; border-collapse: collapse; }
+.hh-table th { padding: 6px 0; border-bottom: 1px solid var(--hh-line); color: var(--hh-muted); font: 8px var(--hh-mono); text-align: left; }
+.hh-table td { padding: 8px 0; border-bottom: 1px solid #e3e7e4; font-size: 11px; }
+.hh-table td:first-child { color: var(--hh-muted); font: 10px var(--hh-mono); }
+.hh-table td .hh-mark { margin-right: 3px; }
+
+@media (max-width: 420px) {
+  .hh-row { grid-template-columns: minmax(0, 1fr) 72px 88px; gap: 8px; }
+  .hh-spark { width: 72px; }
+}

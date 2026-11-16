@@ -1,6 +1,6 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import type { DemoPageProps } from "../../demo-types";
+import type { CheckinValues, DemoPageProps } from "../../demo-types";
 import { FlowRunner } from "../../medical-flow";
 import { AstronautPage, CmoPage, SurgeonPage } from "../pages";
 import { HR_LIMIT, PALPITATIONS_GUIDE_ID } from "../sim/constants";
@@ -36,6 +36,7 @@ export function ActorScreen({ actor }: { actor: PhoneActor }) {
   const minute = Math.floor(state.clock / 60_000) * 60_000;
   const now = useMemo(() => new Date(minute), [minute]);
   const anomalyActive = co2Level(state.base.env.co2) === "alarm";
+  const onCheckin = useCallback((values: CheckinValues) => dispatch({ type: "checkin/submit", values }), [dispatch]);
 
   const pageProps: DemoPageProps = {
     anomalyActive,

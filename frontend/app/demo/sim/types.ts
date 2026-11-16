@@ -1,4 +1,6 @@
-import type { CrewLocation } from "../../demo-types";
+// Save as: app/demo/sim/types.ts (REPLACES yours)
+import type { CheckinValues, CrewLocation } from "../../demo-types";
+import type { HistoryEntry, HistoryStore } from "../history/types";
 import type { FlightSurgeonReport } from "../../medical-flow";
 
 /** Which app the demo is showing. */
@@ -7,7 +9,7 @@ export type Actor = "astronaut" | "cmo" | "surgeon" | "base";
 /** The things in the simulated world that can send each other events. */
 export type NodeId = "watch" | "habitat-sensor" | "astronaut-app" | "base-server";
 
-export type EventKind = "vitals" | "environment" | "report" | "link";
+export type EventKind = "vitals" | "environment" | "report" | "history" | "link";
 export type Co2Level = "nominal" | "caution" | "alarm";
 export type ScenarioId = "nominal" | "co2-excursion" | "high-heart-rate";
 
@@ -30,7 +32,8 @@ export interface CrewVitals {
 
 export type PendingPayload =
   | { type: "vitals"; vitals: CrewVitals }
-  | { type: "report"; report: FlightSurgeonReport };
+  | { type: "report"; report: FlightSurgeonReport }
+  | { type: "history"; crew: string; entries: HistoryEntry[] };
 
 /** Something the astronaut app wants to send to the base while the link is down. */
 export interface PendingItem {
@@ -77,6 +80,10 @@ export interface SimState {
     crew: CrewVitals | null;
     alerts: BaseAlert[];
     reports: ReceivedReport[];
+    /** The base server's copy of every crew member's health history. The medical officer and flight surgeon read this. */
+    history: HistoryStore;
+    /** Last time something was added to `history`. */
+    historySyncedAt: number;
   };
 
   events: SimEvent[];
@@ -97,5 +104,6 @@ export type SimAction =
   | { type: "habitat/send" }
   | { type: "link/set"; online: boolean }
   | { type: "report/submit"; report: FlightSurgeonReport }
+  | { type: "checkin/submit"; values: CheckinValues }
   | { type: "scenario/apply"; scenario: ScenarioId }
   | { type: "reset" };

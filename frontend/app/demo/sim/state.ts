@@ -1,4 +1,8 @@
-import { CO2_ALARM, CO2_CAUTION, DEFAULT_CLOCK, HR_LIMIT, NODE_LABEL, SCENARIOS } from "./constants";
+// Save as: app/demo/sim/state.ts (REPLACES yours)
+import { CO2_ALARM, CO2_CAUTION, DEFAULT_CLOCK, HR_LIMIT, MISSION, NODE_LABEL, SCENARIOS } from "./constants";
+import { seedHistory } from "../history/seed";
+import { checkinEntries, vitalsEntries, withEntries } from "../history/store";
+import type { HistoryEntry } from "../history/types";
 import { formatPpm } from "./format";
 import type {
   BaseAlert,
@@ -44,6 +48,8 @@ export function createInitialState(): SimState {
       crew: { heartRate: 68, spo2: 98, at },
       alerts: [],
       reports: [],
+      history: seedHistory(at),
+      historySyncedAt: at,
     },
     events: [],
     nextId: 1,
@@ -98,10 +104,30 @@ function refreshAlerts(s: SimState): SimState {
   return { ...s, nextId, base: { ...s.base, alerts: alerts.slice(0, 30) } };
 }
 
+function deliverHistory(s: SimState, crew: string, entries: HistoryEntry[]): SimState {
+  const store = s.base.history;
+  return {
+    ...s,
+    base: { ...s.base, history: { ...store, [crew]: withEntries(store[crew] ?? {}, entries) }, historySyncedAt: s.clock },
+  };
+}
+
 function deliverVitals(s: SimState, vitals: CrewVitals): SimState {
   const current = s.base.crew;
   if (current && current.at > vitals.at) return s;
-  return refreshAlerts({ ...s, base: { ...s.base, crew: vitals } });
+  const withHistory = deliverHistory(s, MISSION.astronaut, vitalsEntries(vitals)); // watch readings update today's history
+  return refreshAlerts({ ...withHistory, base: { ...withHistory.base, crew: vitals } });
+}
+
+function deliver(s: SimState, payload: PendingPayload): SimState {
+  switch (payload.type) {
+    case "vitals":
+      return deliverVitals(s, payload.vitals);
+    case "report":
+      return deliverReport(s, payload.report);
+    case "history":
+      return deliverHistory(s, payload.crew, payload.entries);
+  }
 }
 
 function deliverReport(s: SimState, report: FlightSurgeonReport): SimState {
@@ -111,7 +137,7 @@ function deliverReport(s: SimState, report: FlightSurgeonReport): SimState {
 /** Sends something from the astronaut app to the base server, or queues it if the link is down. */
 function sendToBase(
   s: SimState,
-  kind: "vitals" | "report",
+  kind: "vitals" | "report" | "history",
   summary: string,
   payload: PendingPayload
 ): SimState {
@@ -123,9 +149,7 @@ function sendToBase(
     summary: online ? summary : `${summary} (waiting for link)`,
     status: online ? "delivered" : "queued",
   });
-  if (online) {
-    return payload.type === "vitals" ? deliverVitals(next, payload.vitals) : deliverReport(next, payload.report);
-  }
+  if (online) return deliver(next, payload);
   const outbox = [...next.outbox, { eventId: id, payload }].slice(-MAX_OUTBOX);
   return { ...next, outbox };
 }
@@ -186,9 +210,7 @@ function setLink(s: SimState, online: boolean): SimState {
     outbox: [],
     events: next.events.map((e) => (ids.has(e.id) ? { ...e, status: "delivered" as const } : e)),
   };
-  for (const p of pending) {
-    next = p.payload.type === "vitals" ? deliverVitals(next, p.payload.vitals) : deliverReport(next, p.payload.report);
-  }
+  for (const p of pending) next = deliver(next, p.payload);
   [next] = pushEvent(next, {
     from: "astronaut-app",
     to: "base-server",
@@ -236,6 +258,12 @@ export function simReducer(s: SimState, action: SimAction): SimState {
       return sendToBase(s, "report", `Report: ${action.report.outcome.title}`, {
         type: "report",
         report: action.report,
+      });
+    case "checkin/submit":
+      return sendToBase(s, "history", "Daily check-in synced", {
+        type: "history",
+        crew: MISSION.astronaut,
+        entries: checkinEntries(action.values, s.clock),
       });
     case "scenario/apply": {
       const sc = SCENARIOS[action.scenario];

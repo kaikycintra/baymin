@@ -37,3 +37,8 @@ export function useSim(): SimContextValue {
   if (!ctx) throw new Error("useSim must be used inside <SimulationProvider>");
   return ctx;
 }
+
+/** Like useSim, but returns null outside a provider. Lets shared components fall back to static data. */
+export function useSimOptional(): SimContextValue | null {
+  return useContext(SimContext);
+}

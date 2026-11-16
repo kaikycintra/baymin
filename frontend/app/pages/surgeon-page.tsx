@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { RemedyInventory } from "../components/remedy-inventory";
 import type { DemoPageProps } from "../demo-types";
+import { SyncedHealthHistory } from "../demo/history/SyncedHealthHistory";
 
 const missionData = {
   "Artemis III": { cmo: "Dr. Elena Park", crew: ["Maya Chen", "Jonas Weber", "Leah Okafor", "Tomas Varga"], orbit: "Lunar surface · Sol 18" },
@@ -125,6 +126,9 @@ export function SurgeonPage({ anomalyActive, location }: DemoPageProps) {
           </section>
         </div>
       </div>
+      <section className="content-section">
+        <SyncedHealthHistory crewName={crewMember} viewer="server" className="hh-spaced" />
+      </section>
       <RemedyInventory key={mission} canEdit={false} missionConnected={mission === "Artemis III"} />
     </>
   );

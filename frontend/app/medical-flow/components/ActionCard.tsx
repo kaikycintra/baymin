@@ -42,7 +42,7 @@ export function ActionCard({ node, onContinue }: Props) {
         </div>
       )}
 
-      <button type="button" className="mf-btn mf-btn-primary" onClick={onContinue}>
+      <button type="button" className="mf-btn mf-btn-secondary" onClick={onContinue}>
         {node.continueLabel ?? "Done, continue"}
       </button>
     </section>
