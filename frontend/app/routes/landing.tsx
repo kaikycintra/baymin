@@ -33,7 +33,7 @@ const FEATURES = [
   },
   {
     title: "Reports that wait for the link",
-    text: "When the connection drops, data and reports are kept on the device and sent when it returns. The crew keeps following the guide in the meantime.",
+    text: "When the connection drops, data and reports are kept on the device and sent when it returns. The medical officer or flight surgeon can reply to a report, and the reply reaches the astronaut as soon as the link is back. The crew keeps following the guide in the meantime.",
   },
   {
     title: "Shared health history",

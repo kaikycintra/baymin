@@ -1,4 +1,5 @@
 // Save as: app/demo/components/BaseConsole.tsx (REPLACES yours)
+import { useMemo } from "react";
 import { CO2_ALARM, CO2_CAUTION, HR_LIMIT, MISSION, PLACE_LABEL } from "../sim/constants";
 import { useSim } from "../sim/context";
 import { formatClock, formatPpm, marsDay, missionDay } from "../sim/format";
@@ -26,6 +27,7 @@ export function BaseConsole() {
   const activeAlerts = base.alerts.filter((a) => a.clearedAt === null);
   const resolved = base.alerts.filter((a) => a.clearedAt !== null).slice(0, 4);
   const hrHigh = base.crew !== null && base.crew.heartRate > HR_LIMIT;
+  const deliveredIds = useMemo(() => new Set(state.app.responses.map((r) => r.id)), [state.app.responses]);
 
   return (
     <section className="console" aria-label="Base server console">
@@ -113,7 +115,7 @@ export function BaseConsole() {
             <div><span className="eyebrow">FROM THE SYMPTOM GUIDE</span><h2>Crew reports</h2></div>
             <span className="alert-count">{String(base.reports.length).padStart(2, "0")}</span>
           </div>
-          <ReportInbox reports={base.reports} />
+          <ReportInbox reports={base.reports} responses={base.responses} deliveredIds={deliveredIds} />
         </section>
       </div>
     </section>

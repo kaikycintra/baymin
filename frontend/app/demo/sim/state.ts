@@ -1,5 +1,5 @@
 // Save as: app/demo/sim/state.ts (REPLACES yours)
-import { CO2_ALARM, CO2_CAUTION, DEFAULT_CLOCK, HR_LIMIT, MISSION, NODE_LABEL, SCENARIOS } from "./constants";
+import { CO2_ALARM, CO2_CAUTION, DEFAULT_CLOCK, HR_LIMIT, MISSION, NODE_LABEL, RESPONDER_NAME, SCENARIOS } from "./constants";
 import { seedHistory } from "../history/seed";
 import { checkinEntries, vitalsEntries, withEntries } from "../history/store";
 import type { HistoryEntry } from "../history/types";
@@ -9,6 +9,7 @@ import type {
   Co2Level,
   CrewVitals,
   PendingPayload,
+  ReportResponse,
   SimAction,
   SimEvent,
   SimState,
@@ -37,8 +38,9 @@ export function createInitialState(): SimState {
     watch: { heartRate: 68, spo2: 98 },
     habitat: { co2: 800, temp: 22.5 },
     link: "online",
-    app: { heartRate: 68, spo2: 98, receivedAt: null },
+    app: { heartRate: 68, spo2: 98, receivedAt: null, responses: [], seenResponseIds: [] },
     outbox: [],
+    downlink: [],
     base: {
       env: { co2: 800, temp: 22.5, at },
       co2History: Array.from({ length: 8 }, (_, i) => ({
@@ -48,6 +50,7 @@ export function createInitialState(): SimState {
       crew: { heartRate: 68, spo2: 98, at },
       alerts: [],
       reports: [],
+      responses: [],
       history: seedHistory(at),
       historySyncedAt: at,
     },
@@ -150,7 +153,7 @@ function sendToBase(
     status: online ? "delivered" : "queued",
   });
   if (online) return deliver(next, payload);
-  const outbox = [...next.outbox, { eventId: id, payload }].slice(-MAX_OUTBOX);
+  const outbox = [...next.outbox, { eventId: id, payload, queuedAt: next.clock }].slice(-MAX_OUTBOX);
   return { ...next, outbox };
 }
 
@@ -163,7 +166,7 @@ function sendWatch(s: SimState): SimState {
     summary: `HR ${heartRate} bpm · SpO₂ ${spo2}%`,
     status: "delivered",
   });
-  next = { ...next, app: { heartRate, spo2, receivedAt: next.clock } };
+  next = { ...next, app: { ...next.app, heartRate, spo2, receivedAt: next.clock } };
   return sendToBase(next, "vitals", "Crew vitals synced", {
     type: "vitals",
     vitals: { heartRate, spo2, at: next.clock },
@@ -204,18 +207,23 @@ function setLink(s: SimState, online: boolean): SimState {
     return next;
   }
   const pending = next.outbox;
-  const ids = new Set(pending.map((p) => p.eventId));
+  const down = next.downlink;
+  const ids = new Set([...pending.map((p) => p.eventId), ...down.map((d) => d.eventId)]);
   next = {
     ...next,
     outbox: [],
+    downlink: [],
     events: next.events.map((e) => (ids.has(e.id) ? { ...e, status: "delivered" as const } : e)),
+    // replies the base server was holding now reach the astronaut's device
+    app: { ...next.app, responses: [...next.app.responses, ...down.map((d) => d.response)] },
   };
   for (const p of pending) next = deliver(next, p.payload);
+  const total = pending.length + down.length;
   [next] = pushEvent(next, {
     from: "astronaut-app",
     to: "base-server",
     kind: "link",
-    summary: pending.length ? `Link restored. ${pending.length} queued item${pending.length === 1 ? "" : "s"} delivered` : "Link restored",
+    summary: total ? `Link restored. ${total} queued item${total === 1 ? "" : "s"} delivered` : "Link restored",
     status: "delivered",
   });
   return next;
@@ -265,6 +273,40 @@ export function simReducer(s: SimState, action: SimAction): SimState {
         crew: MISSION.astronaut,
         entries: checkinEntries(action.values, s.clock),
       });
+    case "response/send": {
+      const text = action.text.trim().slice(0, 500);
+      const target = s.base.reports.find((r) => r.report.id === action.reportId);
+      if (!text || !target) return s;
+      const label = action.from === "cmo" ? "Medical officer" : "Flight surgeon";
+      const response: ReportResponse = {
+        id: `resp-${s.nextId}`,
+        reportId: action.reportId,
+        from: action.from,
+        author: RESPONDER_NAME[action.from],
+        text,
+        at: s.clock,
+      };
+      // 1. the reply reaches the base server
+      let [next] = pushEvent(s, {
+        from: action.from === "cmo" ? "cmo-app" : "surgeon-app",
+        to: "base-server",
+        kind: "response",
+        summary: `${label} replied to “${target.report.outcome.title}”`,
+        status: "delivered",
+      });
+      next = { ...next, base: { ...next.base, responses: [...next.base.responses, response] } };
+      // 2. the base server passes it on to the astronaut's device, or holds it until the link is back
+      if (next.link === "online") {
+        [next] = pushEvent(next, { from: "base-server", to: "astronaut-app", kind: "response", summary: "Reply delivered to the crew device", status: "delivered" });
+        return { ...next, app: { ...next.app, responses: [...next.app.responses, response] } };
+      }
+      const [queued, eventId] = pushEvent(next, { from: "base-server", to: "astronaut-app", kind: "response", summary: "Reply waiting for the crew device (link down)", status: "queued" });
+      return { ...queued, downlink: [...queued.downlink, { eventId, response }] };
+    }
+    case "response/seen": {
+      const seen = new Set([...s.app.seenResponseIds, ...action.ids]);
+      return { ...s, app: { ...s.app, seenResponseIds: [...seen] } };
+    }
     case "scenario/apply": {
       const sc = SCENARIOS[action.scenario];
       let next = s;

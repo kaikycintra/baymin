@@ -10,6 +10,7 @@ export const MISSION = {
   landingDay: 294,
   crewCount: 4,
   astronaut: "Maya Chen",
+  cmo: "Dr. Elena Park",
 } as const;
 
 /** Default simulated time: mission day 340 (day 47 on Mars), 08:42 UTC, 20 Nov 2034. Fixed so server and client render the same. */
@@ -30,6 +31,8 @@ export const NODE_LABEL: Record<NodeId, string> = {
   watch: "Apple Watch",
   "habitat-sensor": "CO₂ sensor",
   "astronaut-app": "Astronaut app",
+  "cmo-app": "Medical officer app",
+  "surgeon-app": "Flight surgeon app",
   "base-server": "Base server",
 };
 
@@ -39,6 +42,12 @@ export const ACTORS: { id: Actor; label: string; caption: string }[] = [
   { id: "surgeon", label: "Flight surgeon", caption: "Flight surgeon app · ground" },
   { id: "base", label: "Base station", caption: "Mars base server console" },
 ];
+
+/** Who a reply is signed by. */
+export const RESPONDER_NAME = {
+  cmo: `${MISSION.cmo} · Medical officer`,
+  surgeon: "Flight surgeon",
+} as const;
 
 export const SPEEDS = [1, 60, 600] as const;
 
