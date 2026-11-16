@@ -62,7 +62,7 @@ export function ReportPanel({ graph, path, disposition, onQueued }: Props) {
             Report saved at {queuedAt.toLocaleTimeString()}. It will be sent when the link is available.
           </p>
         ) : (
-          <button type="button" className="mf-btn-secondary" onClick={queue}>
+          <button type="button" className="mf-btn mf-btn-secondary" onClick={queue}>
             Save report to send
           </button>
         )}

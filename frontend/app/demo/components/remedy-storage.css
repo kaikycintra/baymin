@@ -1,0 +1,10 @@
+/* Save as: app/demo/components/remedy-storage.css (NEW) */
+/* Remedy storage on the base console. The list, lots and expiry styles come from your existing .remedy-* classes. */
+.rs-refresh { margin: 0; flex: 0 0 auto; }
+.rs-summary { margin: 12px 0 0; color: var(--muted, #6b716d); font: 10px/1.6 var(--mono, "IBM Plex Mono", monospace); }
+.rs .remedy-list { margin-top: 10px; }
+.rs-detail { padding: 4px 8px 16px 12px; border-bottom: 1px solid var(--line, #bfc6c1); border-left: 2px solid var(--ink, #151715); }
+.rs-detail > p { margin: 8px 0 0; color: var(--muted, #6b716d); font-size: 11px; line-height: 1.6; }
+.rs-detail > p strong { color: var(--ink, #151715); }
+.rs-detail .remedy-lots { margin-top: 12px; }
+.rs > .text-action { margin-top: 10px; }

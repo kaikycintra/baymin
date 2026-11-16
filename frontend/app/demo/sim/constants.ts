@@ -1,15 +1,22 @@
+// Save as: app/demo/sim/constants.ts (REPLACES yours)
+import type { CrewLocation } from "../../demo-types";
 import type { Actor, NodeId, ScenarioId } from "./types";
 
 export const MISSION = {
-  name: "Artemis III",
-  /** Mission day 1 starts here (fictional). */
-  start: Date.UTC(2027, 2, 1),
+  name: "Artemis X",
+  /** Mission day 1: launch (fictional, 2033). Mission day 340 falls in 2034. */
+  start: Date.UTC(2033, 11, 16),
+  /** Mission day of the Mars landing. Mission day 340 is the 47th day on the surface. */
+  landingDay: 294,
   crewCount: 4,
   astronaut: "Maya Chen",
 } as const;
 
-/** Default simulated time: mission day 018, 08:42 (UTC). Fixed so server and client render the same. */
-export const DEFAULT_CLOCK = Date.UTC(2027, 2, 18, 8, 42, 0);
+/** Default simulated time: mission day 340 (day 47 on Mars), 08:42 UTC, 20 Nov 2034. Fixed so server and client render the same. */
+export const DEFAULT_CLOCK = Date.UTC(2034, 10, 20, 8, 42, 0);
+
+/** Where the crew member is, in words. */
+export const PLACE_LABEL: Record<CrewLocation, string> = { habitat: "Mars base", rover: "Rover" };
 
 /** Demo thresholds, not clinical limits. */
 export const CO2_CAUTION = 3500;
@@ -30,7 +37,7 @@ export const ACTORS: { id: Actor; label: string; caption: string }[] = [
   { id: "astronaut", label: "Astronaut", caption: "Astronaut app · Maya Chen" },
   { id: "cmo", label: "Medical officer", caption: "Mission medical officer (CMO) app" },
   { id: "surgeon", label: "Flight surgeon", caption: "Flight surgeon app · ground" },
-  { id: "base", label: "Base station", caption: "Ship / base server console" },
+  { id: "base", label: "Base station", caption: "Mars base server console" },
 ];
 
 export const SPEEDS = [1, 60, 600] as const;

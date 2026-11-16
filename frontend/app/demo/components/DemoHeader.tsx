@@ -1,8 +1,9 @@
+// Save as: app/demo/components/DemoHeader.tsx (REPLACES yours)
 import { Link } from "react-router";
 import type { CrewLocation } from "../../demo-types";
-import { ACTORS, MISSION, SPEEDS } from "../sim/constants";
+import { ACTORS, MISSION, PLACE_LABEL, SPEEDS } from "../sim/constants";
 import { useSim } from "../sim/context";
-import { formatClock, fromInputValue, missionDay, toInputValue } from "../sim/format";
+import { formatClock, fromInputValue, marsDay, missionDay, toInputValue } from "../sim/format";
 import type { Actor } from "../sim/types";
 
 interface Props {
@@ -11,7 +12,7 @@ interface Props {
 }
 
 export function DemoHeader({ actor, onActorChange }: Props) {
-    const { state, dispatch, reset } = useSim();
+  const { state, dispatch, reset } = useSim();
 
   return (
     <>
@@ -26,7 +27,9 @@ export function DemoHeader({ actor, onActorChange }: Props) {
             <span className="eyebrow">ACTIVE MISSION</span>
             <strong>{MISSION.name}</strong>
             <span className="mission-details">
-              <span>Mission day {String(missionDay(state.clock)).padStart(3, "0")} · {formatClock(state.clock)} UTC</span>
+              <span>
+                Mission day {String(missionDay(state.clock)).padStart(3, "0")} · {marsDay(state.clock) ? `Mars day ${marsDay(state.clock)}` : "In transit"} · {formatClock(state.clock)} UTC
+              </span>
               <span className="mission-status"><i /> {MISSION.crewCount} crew online</span>
             </span>
           </section>
@@ -58,8 +61,8 @@ export function DemoHeader({ actor, onActorChange }: Props) {
           <label className="location-control">
             <span>CREW CONTEXT</span>
             <select value={state.location} onChange={(e) => dispatch({ type: "location/set", location: e.target.value as CrewLocation })}>
-              <option value="habitat">Habitat</option>
-              <option value="rover">Rover</option>
+              <option value="habitat">{PLACE_LABEL.habitat}</option>
+              <option value="rover">{PLACE_LABEL.rover}</option>
             </select>
           </label>
           <button type="button" className="text-action demo-reset" onClick={reset}>Reset simulation</button>

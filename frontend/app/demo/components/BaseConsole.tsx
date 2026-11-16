@@ -1,9 +1,11 @@
-import { CO2_ALARM, CO2_CAUTION, HR_LIMIT, MISSION } from "../sim/constants";
+// Save as: app/demo/components/BaseConsole.tsx (REPLACES yours)
+import { CO2_ALARM, CO2_CAUTION, HR_LIMIT, MISSION, PLACE_LABEL } from "../sim/constants";
 import { useSim } from "../sim/context";
-import { formatClock, formatPpm, missionDay } from "../sim/format";
+import { formatClock, formatPpm, marsDay, missionDay } from "../sim/format";
 import { co2Level } from "../sim/state";
 import { Co2Chart } from "./Co2Chart";
 import { GlobalAlert } from "./GlobalAlert";
+import { RemedyStorage } from "./RemedyStorage";
 import { ReportInbox } from "./ReportInbox";
 
 const LEVEL_TEXT = { nominal: "Nominal", caution: "Caution", alarm: "Alarm" } as const;
@@ -14,12 +16,13 @@ const OTHER_CREW = [
   { name: "Tomas Varga", heartRate: 66, spo2: 98 },
 ];
 
-/** The ship / base server screen: what the base knows, from the events it has received. */
+/** The Mars base server screen: what the base knows, from the events it has received. */
 export function BaseConsole() {
   const { state } = useSim();
   const { base, link, location, outbox } = state;
   const level = co2Level(base.env.co2);
-  const place = location === "rover" ? "Rover cabin" : "Habitat";
+  const place = location === "rover" ? "Rover" : PLACE_LABEL.habitat;
+  const mars = marsDay(state.clock);
   const activeAlerts = base.alerts.filter((a) => a.clearedAt === null);
   const resolved = base.alerts.filter((a) => a.clearedAt !== null).slice(0, 4);
   const hrHigh = base.crew !== null && base.crew.heartRate > HR_LIMIT;
@@ -27,7 +30,9 @@ export function BaseConsole() {
   return (
     <section className="console" aria-label="Base server console">
       <header className="console-bar">
-        <span className="eyebrow">SHIP / BASE SERVER · {MISSION.name.toUpperCase()} · MISSION DAY {String(missionDay(state.clock)).padStart(3, "0")}</span>
+        <span className="eyebrow">
+          MARS BASE SERVER · {MISSION.name.toUpperCase()} · MISSION DAY {String(missionDay(state.clock)).padStart(3, "0")} · {mars ? `MARS DAY ${mars}` : "IN TRANSIT"}
+        </span>
         <span className={`console-link console-link-${link}`}>
           ● CREW LINK {link.toUpperCase()}
           {outbox.length > 0 ? ` · ${outbox.length} QUEUED ON DEVICE` : ""}
@@ -97,6 +102,10 @@ export function BaseConsole() {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="console-block">
+          <RemedyStorage />
         </section>
 
         <section className="console-block">

@@ -1,5 +1,6 @@
+// Save as: app/demo/components/SensorPanel.tsx (REPLACES yours)
 import { useEffect, useRef, useState } from "react";
-import { MISSION, NODE_LABEL, SCENARIOS } from "../sim/constants";
+import { MISSION, NODE_LABEL, PLACE_LABEL, SCENARIOS } from "../sim/constants";
 import { useSim } from "../sim/context";
 import { formatClock, formatPpm } from "../sim/format";
 import { routeLabel } from "../sim/state";
@@ -43,7 +44,7 @@ export function SensorPanel() {
   const { state, dispatch } = useSim();
   const [watchStream, setWatchStream] = useState(false);
   const [habitatStream, setHabitatStream] = useState(false);
-  const place = state.location === "rover" ? "Rover cabin" : "Habitat";
+  const place = PLACE_LABEL[state.location];
 
   useStream(watchStream, () => dispatch({ type: "watch/send" }));
   useStream(habitatStream, () => dispatch({ type: "habitat/send" }));
@@ -88,7 +89,7 @@ export function SensorPanel() {
 
       <section className="sensor-block" aria-labelledby="link-title">
         <div className="sensor-head">
-          <div><span className="eyebrow">ASTRONAUT APP → BASE SERVER</span><h3 id="link-title" className="sensor-title">Habitat network</h3></div>
+          <div><span className="eyebrow">ASTRONAUT APP → BASE SERVER</span><h3 id="link-title" className="sensor-title">Base network</h3></div>
           <button
             type="button"
             className={`hazard-toggle ${state.link === "offline" ? "is-on" : ""}`}

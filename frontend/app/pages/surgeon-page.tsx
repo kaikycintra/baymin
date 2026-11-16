@@ -1,11 +1,11 @@
+// Save as: your surgeon page file, e.g. app/routes/surgeon.tsx (REPLACES yours)
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { RemedyInventory } from "../components/remedy-inventory";
 import type { DemoPageProps } from "../demo-types";
 import { SyncedHealthHistory } from "../demo/history/SyncedHealthHistory";
 
 const missionData = {
-  "Artemis III": { cmo: "Dr. Elena Park", crew: ["Maya Chen", "Jonas Weber", "Leah Okafor", "Tomas Varga"], orbit: "Lunar surface · Sol 18" },
+  "Artemis X": { cmo: "Dr. Elena Park", crew: ["Maya Chen", "Jonas Weber", "Leah Okafor", "Tomas Varga"], orbit: "Mars surface · Day 47" },
   "Gateway Resupply 2": { cmo: "Dr. Samir Patel", crew: ["Nia Brooks", "Owen Kim", "Rafael Costa"], orbit: "NRHO · Day 06" },
   "Mars Transit Demo": { cmo: "Dr. Anika Rao", crew: ["Avery Cole", "Mei Tan", "Dmitri Volkov"], orbit: "Transit · Day 142" },
 };
@@ -13,13 +13,10 @@ const missionData = {
 type MissionName = keyof typeof missionData;
 
 export function SurgeonPage({ anomalyActive, location }: DemoPageProps) {
-  const [mission, setMission] = useState<MissionName>("Artemis III");
+  const [mission, setMission] = useState<MissionName>("Artemis X");
   const [crewMember, setCrewMember] = useState("Maya Chen");
   const [sleepStart, setSleepStart] = useState("21:30");
-  const [extraCheckin, setExtraCheckin] = useState(false);
   const [routineSaved, setRoutineSaved] = useState(false);
-  const [message, setMessage] = useState("");
-  const [sentMessages, setSentMessages] = useState<string[]>([]);
   const activeMission = missionData[mission];
 
   function changeMission(value: MissionName) {
@@ -28,21 +25,13 @@ export function SurgeonPage({ anomalyActive, location }: DemoPageProps) {
     setRoutineSaved(false);
   }
 
-  function sendMessage(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmed = message.trim();
-    if (!trimmed) return;
-    setSentMessages((current) => [`To ${crewMember}: ${trimmed}`, ...current]);
-    setMessage("");
-  }
-
   return (
     <>
       <section className="page-heading">
         <div>
           <span className="eyebrow">FLIGHT SURGEON / MULTI-MISSION</span>
           <h1>Mission oversight<span>.</span></h1>
-          <p>Review crew trends, adjust routines, and communicate with the mission team.</p>
+          <p>Review crew history and trends, and adjust sleep routines for the mission team.</p>
         </div>
         <div className="heading-readout"><span className="eyebrow">MISSIONS</span><strong>03</strong><span>3 CMOs CONNECTED</span></div>
       </section>
@@ -73,13 +62,9 @@ export function SurgeonPage({ anomalyActive, location }: DemoPageProps) {
           <label className="field-label">SCHEDULED SLEEP WINDOW START
             <input type="time" value={sleepStart} onChange={(event) => { setSleepStart(event.target.value); setRoutineSaved(false); }} />
           </label>
-          <label className="check-option">
-            <input type="checkbox" checked={extraCheckin} onChange={(event) => { setExtraCheckin(event.target.checked); setRoutineSaved(false); }} />
-            <span><strong>Add extra cognitive check-in</strong><small>Schedule an additional reaction check during the next duty cycle.</small></span>
-          </label>
           <div className="routine-preview">
             <span className="eyebrow">CHANGE PREVIEW</span>
-            <p>{crewMember} · sleep window begins at {sleepStart}{extraCheckin ? " · additional cognitive check-in" : " · standard cognitive cadence"}</p>
+            <p>{crewMember} · sleep window begins at {sleepStart}</p>
           </div>
           <button className="button button-primary full-button" type="button" onClick={() => setRoutineSaved(true)}>
             {routineSaved ? "Routine update queued" : "Save routine update"}
@@ -100,36 +85,17 @@ export function SurgeonPage({ anomalyActive, location }: DemoPageProps) {
               <article className="mission-alert mission-alert-red">
                 <div className="alert-meta"><span>ENVIRONMENTAL CORRELATION</span><time>NOW</time></div>
                 <strong>Maya Chen · local event</strong>
-                <p>Biometric and symptom inputs overlap with a simulated CO₂ event in the {location} context.</p>
+                <p>Biometric and symptom inputs overlap with a simulated CO₂ event at the {location === "rover" ? "rover" : "Mars base"}.</p>
               </article>
             )}
           </section>
 
-          <section className="message-panel">
-            <div className="section-heading compact-heading"><div><span className="eyebrow">PRIVATE CHANNEL</span><h2>Crew message</h2></div><span className="private-tag">PRIVATE</span></div>
-            <form onSubmit={sendMessage}>
-              <label className="field-label">RECIPIENT
-                <select value={crewMember} onChange={(event) => setCrewMember(event.target.value)}>
-                  {activeMission.crew.map((member) => <option key={member}>{member}</option>)}
-                </select>
-              </label>
-              <label className="field-label">MESSAGE
-                <textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Write a private mission message..." rows={3} />
-              </label>
-              <button className="button button-secondary full-button" type="submit" disabled={!message.trim()}>Send message</button>
-            </form>
-            {sentMessages.length > 0 && (
-              <div className="sent-message-list" aria-live="polite">
-                {sentMessages.map((sentMessage, index) => <p key={`${sentMessage}-${index}`}>{sentMessage}<small>JUST NOW · DEMO</small></p>)}
-              </div>
-            )}
-          </section>
         </div>
       </div>
       <section className="content-section">
         <SyncedHealthHistory crewName={crewMember} viewer="server" className="hh-spaced" />
       </section>
-      <RemedyInventory key={mission} canEdit={false} missionConnected={mission === "Artemis III"} />
+      <RemedyInventory key={mission} canEdit={false} missionConnected={mission === "Artemis X"} />
     </>
   );
 }

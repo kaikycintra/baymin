@@ -1,3 +1,4 @@
+// Save as: app/demo/components/ActorScreen.tsx (REPLACES yours)
 import { memo, useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { CheckinValues, DemoPageProps } from "../../demo-types";
@@ -5,7 +6,7 @@ import { FlowRunner } from "../../medical-flow";
 import { AstronautPage, CmoPage, SurgeonPage } from "../pages";
 import { HR_LIMIT, PALPITATIONS_GUIDE_ID } from "../sim/constants";
 import { useSim } from "../sim/context";
-import { missionDay } from "../sim/format";
+import { marsDay, missionDay } from "../sim/format";
 import { co2Level } from "../sim/state";
 import type { Actor } from "../sim/types";
 import { GlobalAlert } from "./GlobalAlert";
@@ -36,6 +37,7 @@ export function ActorScreen({ actor }: { actor: PhoneActor }) {
   const minute = Math.floor(state.clock / 60_000) * 60_000;
   const now = useMemo(() => new Date(minute), [minute]);
   const anomalyActive = co2Level(state.base.env.co2) === "alarm";
+  // Stable, so the memoised pages do not re-render. Saved check-ins go into the shared health history.
   const onCheckin = useCallback((values: CheckinValues) => dispatch({ type: "checkin/submit", values }), [dispatch]);
 
   const pageProps: DemoPageProps = {
@@ -43,9 +45,11 @@ export function ActorScreen({ actor }: { actor: PhoneActor }) {
     location: state.location,
     now,
     missionDay: missionDay(state.clock),
+    marsDay: marsDay(state.clock),
     heartRate: state.app.heartRate,
     spo2: state.app.spo2,
     co2Ppm: state.base.env.co2,
+    onCheckin,
   };
 
   const reportCount = state.base.reports.length;
@@ -71,9 +75,11 @@ export function ActorScreen({ actor }: { actor: PhoneActor }) {
 
   const statusRight =
     actor === "astronaut" ? (
-      <span className={`phone-link phone-link-${state.link}`}>● HAB-NET{state.link === "offline" ? " OFF" : ""}</span>
+      <span className={`phone-link phone-link-${state.link}`}>● BASE-NET{state.link === "offline" ? " OFF" : ""}</span>
+    ) : actor === "cmo" ? (
+      <span className="phone-link phone-link-online">● BASE-NET</span>
     ) : (
-      <span className="phone-link phone-link-online">● GROUND</span>
+      <span className="phone-link phone-link-online">● EARTH LINK</span>
     );
 
   return (

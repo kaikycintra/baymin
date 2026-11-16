@@ -1,3 +1,4 @@
+// Save as: app/routes/landing.tsx (REPLACES yours)
 import { Link } from "react-router";
 import type { Route } from "./+types/landing";
 import "../demo/demo.css";
@@ -35,16 +36,20 @@ const FEATURES = [
     text: "When the connection drops, data and reports are kept on the device and sent when it returns. The crew keeps following the guide in the meantime.",
   },
   {
-    title: "Shared remedy inventory",
-    text: "The medical officer keeps the stock up to date and the flight surgeon can review it from the ground.",
+    title: "Shared health history",
+    text: "Sleep, heart, cognition and wellbeing trends are color-coded against reference ranges. The astronaut, the medical officer and the flight surgeon all see the same history.",
+  },
+  {
+    title: "Remedy inventory",
+    text: "The medical officer keeps the stock up to date, the flight surgeon can review it from Earth, and the base server shows what is in storage, in which lot, and what has expired.",
   },
 ];
 
 const SCREENS = [
   { actor: "astronaut", title: "Astronaut app", text: "Daily routine, check-ins, journal, and the symptom guide. Receives live readings from a wearable." },
   { actor: "cmo", title: "Mission medical officer", text: "Crew roster, trends, mission alerts, and reports from crew members, on board." },
-  { actor: "surgeon", title: "Flight surgeon", text: "Oversight across missions from the ground: adjust routines, send messages, review reports." },
-  { actor: "base", title: "Base station", text: "The ship or base server. Shows what it has received, raises alerts, and collects reports." },
+  { actor: "surgeon", title: "Flight surgeon", text: "Oversight across missions from Earth: adjust sleep routines and review crew history, trends and reports." },
+  { actor: "base", title: "Base station", text: "The Mars base server. Shows what it has received, raises alerts, and collects reports and shows the remedy storage." },
 ] as const;
 
 const STEPS = [
@@ -52,7 +57,7 @@ const STEPS = [
   "Send an event from the sensor panel. Try the CO₂ excursion scenario.",
   "Follow it. The event log shows who sent what to whom, and the base station shows what it knows.",
   "Act on it. Open the symptom guide on the astronaut phone, save the report, then find it on the medical officer and base screens.",
-  "Turn the habitat network off and send more readings to see them queue, then switch it back on.",
+  "Turn the base network off and send more readings or a check-in to see them queue, then switch it back on.",
 ];
 
 export default function Landing() {
@@ -74,12 +79,16 @@ export default function Landing() {
         <section className="landing-section landing-hero-section">
           <div className="landing-inner landing-hero">
             <div>
-              <span className="eyebrow">CREW HEALTH / DEEP SPACE</span>
+              <span className="eyebrow">CREW HEALTH / MARS</span>
               <h1>Health support that keeps working when Earth is far away<span>.</span></h1>
               <p className="landing-lead">
                 Baymax helps astronauts check on their own health, work through symptoms step by step,
                 and tell the medical officer and flight surgeons what happened, even when the link home
                 is slow or down.
+              </p>
+              <p className="landing-scenario">
+                The demo follows the fictional Artemis X crew on Mars in 2034: mission day 340, day 47 on the
+                surface, living in a base and working from a rover.
               </p>
               <div className="landing-actions">
                 <Link to="/demo" className="landing-button landing-button-primary">Open the demo</Link>
@@ -105,10 +114,10 @@ export default function Landing() {
           <div className="landing-inner landing-heading">
             <h2>Far from Earth, the first responder is the crew.</h2>
             <p>
-              On a long mission the crew cannot count on an instant answer from the ground. Messages take
-              time, links drop, and the medicine cabinet is small. The first person to look at a problem
-              is usually the person who has it. Baymax is built for that moment, and for the hours after,
-              while the ground catches up.
+              On a long mission the crew cannot count on an instant answer from Earth. From Mars a message
+              takes minutes to arrive and the reply takes just as long, links drop, and the medicine cabinet
+              is small. The first person to look at a problem is usually the person who has it. Baymax is
+              built for that moment, and for the hours after, while Earth catches up.
             </p>
           </div>
         </section>
@@ -117,7 +126,7 @@ export default function Landing() {
           <div className="landing-inner">
             <div className="landing-heading">
               <h2>What the demo shows</h2>
-              <p>Five ideas, working together in one simulated mission.</p>
+              <p>Six ideas, working together in one simulated mission.</p>
             </div>
             <div className="landing-rows">
               {FEATURES.map((f) => (
