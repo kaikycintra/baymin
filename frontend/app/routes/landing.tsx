@@ -1,4 +1,3 @@
-// Save as: app/routes/landing.tsx (REPLACES yours)
 import { Link } from "react-router";
 import type { Route } from "./+types/landing";
 import "../demo/demo.css";

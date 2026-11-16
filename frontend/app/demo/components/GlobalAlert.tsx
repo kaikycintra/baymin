@@ -1,4 +1,3 @@
-// Save as: app/demo/components/GlobalAlert.tsx (REPLACES yours)
 import type { CrewLocation } from "../../demo-types";
 import { PLACE_LABEL } from "../sim/constants";
 import { formatPpm } from "../sim/format";

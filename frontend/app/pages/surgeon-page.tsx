@@ -1,4 +1,3 @@
-// Save as: your surgeon page file, e.g. app/routes/surgeon.tsx (REPLACES yours)
 import { useState } from "react";
 import { RemedyInventory } from "../components/remedy-inventory";
 import type { DemoPageProps } from "../demo-types";

@@ -1,4 +1,3 @@
-// Save as: app/demo/components/SensorPanel.tsx (REPLACES yours)
 import { useEffect, useRef, useState } from "react";
 import { MISSION, NODE_LABEL, PLACE_LABEL, SCENARIOS } from "../sim/constants";
 import { useSim } from "../sim/context";

@@ -1,4 +1,3 @@
-// Save as: app/demo-types.ts (REPLACES yours)
 export type CrewLocation = "habitat" | "rover";
 
 /** What the astronaut enters in the daily check-in. */

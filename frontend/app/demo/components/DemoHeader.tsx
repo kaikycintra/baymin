@@ -1,4 +1,3 @@
-// Save as: app/demo/components/DemoHeader.tsx (REPLACES yours)
 import { Link } from "react-router";
 import type { CrewLocation } from "../../demo-types";
 import { ACTORS, MISSION, PLACE_LABEL, SPEEDS } from "../sim/constants";

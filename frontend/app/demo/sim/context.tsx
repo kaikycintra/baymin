@@ -1,4 +1,3 @@
-// Save as: app/demo/sim/context.tsx (REPLACES yours)
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
 import type { Dispatch, ReactNode } from "react";
 import { clearDemoStorage } from "./storage";

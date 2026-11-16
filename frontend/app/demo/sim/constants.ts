@@ -1,4 +1,3 @@
-// Save as: app/demo/sim/constants.ts (REPLACES yours)
 import type { CrewLocation } from "../../demo-types";
 import type { Actor, NodeId, ScenarioId } from "./types";
 

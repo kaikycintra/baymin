@@ -1,4 +1,3 @@
-// Save as: app/demo/components/ActorScreen.tsx (REPLACES yours)
 import { memo, useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { CheckinValues, DemoPageProps } from "../../demo-types";

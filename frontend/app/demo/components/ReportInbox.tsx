@@ -1,4 +1,3 @@
-// Save as: app/demo/components/ReportInbox.tsx (REPLACES yours)
 import { useState } from "react";
 import { groupResponses } from "../sim/reports";
 import type { ReceivedReport, ReportResponse } from "../sim/types";

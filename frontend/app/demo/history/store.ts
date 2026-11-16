@@ -1,4 +1,3 @@
-// Save as: app/demo/history/store.ts
 import type { CheckinValues } from "../../demo-types";
 import type { PendingItem } from "../sim/types";
 import { dayOf } from "./indicators";

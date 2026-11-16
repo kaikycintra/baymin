@@ -1,4 +1,3 @@
-// Save as: app/demo/sim/types.ts (REPLACES yours)
 import type { CheckinValues, CrewLocation } from "../../demo-types";
 import type { HistoryEntry, HistoryStore } from "../history/types";
 import type { FlightSurgeonReport } from "../../medical-flow";

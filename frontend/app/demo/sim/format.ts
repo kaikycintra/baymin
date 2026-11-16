@@ -1,4 +1,3 @@
-// Save as: app/demo/sim/format.ts (REPLACES yours)
 import { MISSION } from "./constants";
 
 const pad = (n: number) => String(n).padStart(2, "0");

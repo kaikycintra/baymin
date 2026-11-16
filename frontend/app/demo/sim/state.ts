@@ -1,4 +1,3 @@
-// Save as: app/demo/sim/state.ts (REPLACES yours)
 import { CO2_ALARM, CO2_CAUTION, DEFAULT_CLOCK, HR_LIMIT, MISSION, NODE_LABEL, RESPONDER_NAME, SCENARIOS } from "./constants";
 import { seedHistory } from "../history/seed";
 import { checkinEntries, vitalsEntries, withEntries } from "../history/store";

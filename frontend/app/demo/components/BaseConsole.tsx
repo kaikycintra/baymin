@@ -1,4 +1,3 @@
-// Save as: app/demo/components/BaseConsole.tsx (REPLACES yours)
 import { useMemo } from "react";
 import { CO2_ALARM, CO2_CAUTION, HR_LIMIT, MISSION, PLACE_LABEL } from "../sim/constants";
 import { useSim } from "../sim/context";
