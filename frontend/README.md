@@ -1,4 +1,4 @@
-# Baymax Frontend
+# Baymin Frontend
 
 The frontend is a React Router application with separate pages for astronauts, mission CMOs, and flight surgeons. Most pages still use mock data and local demo state. The CMO remedy catalog and inventory use the onboard FastAPI backend.
 
@@ -35,7 +35,7 @@ All three pages currently render without login. The routes only separate the pag
 
 ## Backend Status
 
-The onboard Baymax API is organized by feature. `backend/app/core/` holds shared configuration and SQLite setup; `backend/app/remedies/` holds remedy API models, business logic, and routes. The frontend's routine data, crew, trends, messages, and simulated CO2 event are still local mock state. The remaining API paths below are a proposed integration contract, not implemented endpoints.
+The onboard Baymin API is organized by feature. `backend/app/core/` holds shared configuration and SQLite setup; `backend/app/remedies/` holds remedy API models, business logic, and routes. The frontend's routine data, crew, trends, messages, and simulated CO2 event are still local mock state. The remaining API paths below are a proposed integration contract, not implemented endpoints.
 
 ### Onboard Remedy Inventory (Implemented Demo)
 
@@ -44,7 +44,7 @@ The onboard Baymax API is organized by feature. `backend/app/core/` holds shared
 | GET | `/api/v1/remedies` | Return fictional catalog items, stock lots, locations, expiry, and available quantity. |
 | POST | `/api/v1/remedies/{remedyId}/stock-adjustments` | Record `used`, `received`, or `discarded` stock with a quantity, lot ID, and reason. |
 
-The database is SQLite at `backend/baymax.sqlite3` by default. Set `BAYMAX_DB_PATH` to use another location. On first startup, `backend/app/remedies/seed.sql` creates the remedy tables and inserts three fictional items and four lots; later restarts preserve stock changes. In Docker, mount a persistent volume at `/data` (for example `-v baymax-data:/data`). The backend image serves only the API; serve the frontend separately with `/api` routed to the backend. The Vite development server already proxies `/api` to FastAPI on port 8000, so run both with `make dev`.
+The database is SQLite at `backend/baymin.sqlite3` by default. Set `BAYMIN_DB_PATH` to use another location. On first startup, `backend/app/remedies/seed.sql` creates the remedy tables and inserts three fictional items and four lots; later restarts preserve stock changes. In Docker, mount a persistent volume at `/data` (for example `-v baymin-data:/data`). The backend image serves only the API; serve the frontend separately with `/api` routed to the backend. The Vite development server already proxies `/api` to FastAPI on port 8000, so run both with `make dev`.
 
 The CMO can record stock changes. The surgeon sees the same inventory without stock controls when Artemis III is selected. The other missions show an unavailable state because the demo backend does not provide mission-scoped inventories.
 

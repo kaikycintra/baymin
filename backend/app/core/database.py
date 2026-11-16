@@ -1,4 +1,4 @@
-"""Shared SQLite connection setup for onboard Baymax features."""
+"""Shared SQLite connection setup for onboard Baymin features."""
 
 import sqlite3
 

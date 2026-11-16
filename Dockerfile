@@ -11,7 +11,7 @@ COPY backend/ ./backend/
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
-ENV BAYMAX_DB_PATH=/data/baymax.sqlite3
+ENV BAYMIN_DB_PATH=/data/baymin.sqlite3
 VOLUME /data
 
 # Run FastAPI in production mode, listening on all network interfaces

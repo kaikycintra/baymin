@@ -4,7 +4,7 @@ import "../demo/demo.css";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Baymax | Mission health" },
+    { title: "Baymin | Mission health" },
     { name: "description", content: "Health support for crews far from Earth: daily check-ins, guided symptom flows, and reports that reach the ground even when the link is slow." },
   ];
 }
@@ -63,9 +63,9 @@ export default function Landing() {
   return (
     <div className="landing">
       <header className="landing-bar">
-        <Link className="brand-lockup" to="/" aria-label="Baymax mission health">
-          <img className="brand-mark" src="/baymax-logo.png" alt="" aria-hidden="true" />
-          <span><strong>BAYMAX</strong><small>MISSION HEALTH</small></span>
+        <Link className="brand-lockup" to="/" aria-label="Baymin mission health">
+          <img className="brand-mark" src="/baymin-logo.png" alt="" aria-hidden="true" />
+          <span><strong>BAYMIN</strong><small>MISSION HEALTH</small></span>
         </Link>
         <nav className="landing-nav" aria-label="Main">
           <a href="#how">How it works</a>
@@ -81,7 +81,7 @@ export default function Landing() {
               <span className="eyebrow">CREW HEALTH / MARS</span>
               <h1>Health support that keeps working when Earth is far away<span>.</span></h1>
               <p className="landing-lead">
-                Baymax helps astronauts check on their own health, work through symptoms step by step,
+                Baymin helps astronauts check on their own health, work through symptoms step by step,
                 and tell the medical officer and flight surgeons what happened, even when the link home
                 is slow or down.
               </p>
@@ -115,7 +115,7 @@ export default function Landing() {
             <p>
               On a long mission the crew cannot count on an instant answer from Earth. From Mars a message
               takes minutes to arrive and the reply takes just as long, links drop, and the medicine cabinet
-              is small. The first person to look at a problem is usually the person who has it. Baymax is
+              is small. The first person to look at a problem is usually the person who has it. Baymin is
               built for that moment, and for the hours after, while Earth catches up.
             </p>
           </div>

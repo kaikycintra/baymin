@@ -11,7 +11,7 @@ import "../demo/demo.css";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Baymax | Simulation" },
+    { title: "Baymin | Simulation" },
     { name: "description", content: "Try the astronaut, medical officer, flight surgeon and base station screens, and send sensor events between them." },
   ];
 }

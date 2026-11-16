@@ -354,7 +354,7 @@ function DailyChecksPanel({
   );
 }
 
-const JOURNAL_STORAGE_KEY = "baymax.astronaut-journal.v1";
+const JOURNAL_STORAGE_KEY = "baymin.astronaut-journal.v1";
 const MAX_JOURNAL_STORAGE_LENGTH = 2_400_000;
 const MAX_RECORDING_SECONDS = 90;
 

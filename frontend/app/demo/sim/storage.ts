@@ -3,7 +3,7 @@
  * If you rename the journal key in the astronaut page, change it here too.
  */
 const DEMO_STORAGE_KEYS = [
-  "baymax.astronaut-journal.v1", // journal text entries and voice recordings (audio saved as data URLs)
+  "baymin.astronaut-journal.v1", // journal text entries and voice recordings (audio saved as data URLs)
   "medical-flow.outbox.v1", // symptom-guide reports saved on the device
 ];
 

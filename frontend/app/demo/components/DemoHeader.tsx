@@ -17,9 +17,9 @@ export function DemoHeader({ actor, onActorChange }: Props) {
     <>
       <header className="topbar demo-topbar">
         <div className="header-identity">
-          <Link className="brand-lockup" to="/" aria-label="Baymax mission health, back to the overview">
-            <img className="brand-mark" src="/baymax-logo.png" alt="" aria-hidden="true" />
-            <span><strong>BAYMAX</strong><small>MISSION HEALTH</small></span>
+          <Link className="brand-lockup" to="/" aria-label="Baymin mission health, back to the overview">
+            <img className="brand-mark" src="/baymin-logo.png" alt="" aria-hidden="true" />
+            <span><strong>BAYMIN</strong><small>MISSION HEALTH</small></span>
           </Link>
           <span className="identity-rule" aria-hidden="true" />
           <section className="mission-summary" aria-label="Current mission">

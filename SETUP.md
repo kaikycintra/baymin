@@ -1,6 +1,6 @@
-# Baymax Development Setup
+# Baymin Development Setup
 
-Baymax uses [mise](https://mise.jdx.dev/) to manage language runtimes (Python, Node) and automate development tasks.
+Baymin uses [mise](https://mise.jdx.dev/) to manage language runtimes (Python, Node) and automate development tasks.
 
 ## Prerequisites
 

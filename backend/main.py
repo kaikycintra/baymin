@@ -1,4 +1,4 @@
-"""Baymax onboard API entry point."""
+"""Baymin onboard API entry point."""
 
 from contextlib import asynccontextmanager
 
@@ -14,5 +14,5 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Baymax Onboard API", lifespan=lifespan)
+app = FastAPI(title="Baymin Onboard API", lifespan=lifespan)
 app.include_router(remedies_router)

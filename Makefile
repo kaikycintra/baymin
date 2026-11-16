@@ -5,7 +5,7 @@ MAKE ?= make
 
 # Show the available Make targets and a short description of each.
 help:
-	@printf "Baymax development commands:\n"
+	@printf "Baymin development commands:\n"
 	@printf "  make setup         Install runtimes and project dependencies\n"
 	@printf "  make dev           Start backend and frontend together\n"
 	@printf "  make dev-backend   Start the FastAPI backend\n"
